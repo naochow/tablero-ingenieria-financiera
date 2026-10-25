@@ -1,8 +1,9 @@
 """Pruebas del motor de cálculo con los valores de referencia del CONTEXTO (sección 9)."""
 
+import numpy_financial as npf
 import pytest
 
-from finanzas import tasas
+from finanzas import interes, tasas
 
 TOL_TASA = 1e-6
 
@@ -67,3 +68,72 @@ def test_entradas_invalidas():
         tasas.a_efectiva_anual(0.01, "periodica", "quincenal")
     with pytest.raises(ValueError):
         tasas.anticipada_a_vencida(1.0)
+
+
+# --- interes.py ---
+
+TOL_PESOS = 1
+
+
+def test_simple_cuatro_meses():
+    n = interes.plazo_en_anos(4, "meses")
+    assert interes.interes_simple(10_000_000, 0.18, n) == pytest.approx(600_000, abs=TOL_PESOS)
+
+
+def test_simple_tasa_mensual_y_dias():
+    # 1,5% mensual simple = 18% anual; 120 días con año de 360 = 4 meses
+    i = interes.tasa_simple_anual(0.015, "mensual")
+    n = interes.plazo_en_anos(120, "dias", 360)
+    assert interes.interes_simple(10_000_000, i, n) == pytest.approx(600_000, abs=TOL_PESOS)
+    n_365 = interes.plazo_en_anos(120, "dias", 365)
+    assert interes.interes_simple(10_000_000, i, n_365) < 600_000
+
+
+def test_simple_despejes():
+    vf = interes.vf_simple(10_000_000, 0.18, 1 / 3)
+    assert interes.vp_simple(vf, 0.18, 1 / 3) == pytest.approx(10_000_000, abs=TOL_PESOS)
+    assert interes.tasa_simple(10_000_000, vf, 1 / 3) == pytest.approx(0.18, abs=TOL_TASA)
+    assert interes.plazo_simple(10_000_000, vf, 0.18) == pytest.approx(1 / 3, abs=TOL_TASA)
+
+
+def test_simple_iterativo_igual_a_formula():
+    _, saldos = interes.acumulado_simple(10_000_000, 0.015, 4.5)
+    assert saldos[-1] == pytest.approx(interes.vf_simple(10_000_000, 0.015, 4.5), abs=TOL_PESOS)
+
+
+def test_compuesto_treinta_meses():
+    vf = interes.vf_compuesto(4_000_000, 0.015, 30)
+    assert vf == pytest.approx(6_252_320.88, abs=TOL_PESOS)
+    assert vf == pytest.approx(npf.fv(0.015, 30, 0, -4_000_000), abs=TOL_PESOS)
+
+
+def test_compuesto_despejes():
+    vf = 6_252_320.88
+    assert interes.vp_compuesto(vf, 0.015, 30) == pytest.approx(4_000_000, abs=TOL_PESOS)
+    assert interes.tasa_compuesta(4_000_000, vf, 30) == pytest.approx(0.015, abs=TOL_TASA)
+    assert interes.periodos_compuesto(4_000_000, vf, 0.015) == pytest.approx(30, abs=1e-4)
+
+
+def test_compuesto_iterativo_y_duplicar():
+    _, saldos = interes.acumulado_compuesto(4_000_000, 0.015, 30)
+    assert saldos[-1] == pytest.approx(6_252_320.88, abs=TOL_PESOS)
+    n = interes.tiempo_duplicar(0.015)
+    assert interes.vf_compuesto(1, 0.015, n) == pytest.approx(2, abs=1e-9)
+
+
+def test_tabla_frecuencias():
+    filas = interes.tabla_frecuencias(1_000_000, 0.18, 1)
+    anual, mensual = filas[0], filas[3]
+    assert anual["valor_futuro"] == pytest.approx(1_180_000, abs=TOL_PESOS)
+    assert mensual["ea"] == pytest.approx(1.015 ** 12 - 1, abs=TOL_TASA)
+    vfs = [f["valor_futuro"] for f in filas]
+    assert vfs == sorted(vfs)  # más frecuencia, más valor futuro
+
+
+def test_interes_entradas_invalidas():
+    with pytest.raises(ValueError):
+        interes.plazo_en_anos(3, "semanas")
+    with pytest.raises(ValueError):
+        interes.plazo_simple(100, 120, 0)
+    with pytest.raises(ValueError):
+        interes.tiempo_duplicar(0)
