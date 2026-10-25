@@ -3,7 +3,7 @@
 import numpy_financial as npf
 import pytest
 
-from finanzas import interes, tasas
+from finanzas import gradientes, interes, series, tasas
 
 TOL_TASA = 1e-6
 
@@ -137,3 +137,97 @@ def test_interes_entradas_invalidas():
         interes.plazo_simple(100, 120, 0)
     with pytest.raises(ValueError):
         interes.tiempo_duplicar(0)
+
+
+# --- series.py ---
+
+def test_serie_vencida_vp():
+    vp = series.vp_serie(250_000, 0.01, 36)
+    assert vp == pytest.approx(7_526_876.26, abs=TOL_PESOS)
+    assert vp == pytest.approx(npf.pv(0.01, 36, -250_000), abs=TOL_PESOS)
+
+
+def test_serie_anticipada_vp():
+    vp = series.vp_serie(150_000, 0.015, 11, anticipada=True)
+    assert vp == pytest.approx(1_533_327.68, abs=TOL_PESOS)
+    assert vp == pytest.approx(npf.pv(0.015, 11, -150_000, when="begin"), abs=TOL_PESOS)
+    # Sin when='begin' (error de los Excel) el resultado es distinto
+    assert abs(vp - npf.pv(0.015, 11, -150_000)) > 10_000
+
+
+@pytest.mark.parametrize("anticipada", [False, True])
+def test_serie_resolver_desde_cada_conocido(anticipada):
+    base = series.resolver_serie("cuota", 250_000, 0.01, 36, anticipada)
+    desde_vp = series.resolver_serie("vp", base["vp"], 0.01, 36, anticipada)
+    desde_vf = series.resolver_serie("vf", base["vf"], 0.01, 36, anticipada)
+    for resultado in (desde_vp, desde_vf):
+        for clave in series.CONOCIDOS:
+            assert resultado[clave] == pytest.approx(base[clave], abs=TOL_PESOS)
+    when = "begin" if anticipada else "end"
+    assert base["cuota"] == pytest.approx(npf.pmt(0.01, 36, -base["vp"], when=when), abs=TOL_PESOS)
+
+
+@pytest.mark.parametrize("anticipada", [False, True])
+def test_serie_cuota_a_cuota_y_acumulado(anticipada):
+    vp = series.vp_serie(250_000, 0.01, 36, anticipada)
+    assert series.vp_flujo([250_000] * 36, 0.01, anticipada) == pytest.approx(vp, abs=TOL_PESOS)
+    _, aportes, saldos = series.acumulado_serie(250_000, 0.01, 36, anticipada)
+    assert saldos[-1] == pytest.approx(series.vf_serie(250_000, 0.01, 36, anticipada), abs=TOL_PESOS)
+    assert aportes[-1] == 250_000 * 36
+
+
+def test_serie_tasa_cero():
+    assert series.vp_serie(100, 0, 12) == 1_200
+    assert series.cuota_desde_vf(1_200, 0, 12) == 100
+
+
+# --- gradientes.py ---
+
+def test_gradiente_aritmetico():
+    vp = gradientes.vp_aritmetico(500_000, 20_000, 0.012, 24)
+    assert vp == pytest.approx(14_907_744.40, abs=TOL_PESOS)
+    assert gradientes.cuota_equivalente(vp, 0.012, 24) == pytest.approx(718_584.06, abs=TOL_PESOS)
+    cuotas = gradientes.cuotas_aritmetico(500_000, 20_000, 24)
+    assert npf.npv(0.012, [0] + cuotas) == pytest.approx(vp, abs=TOL_PESOS)
+    assert gradientes.primera_cuota_aritmetico(vp, 20_000, 0.012, 24) == pytest.approx(500_000, abs=TOL_PESOS)
+
+
+def test_gradiente_geometrico_primera_cuota():
+    i = tasas.tasa_periodica(0.215, "efectiva", "anual", "vencida", "trimestral")
+    a1 = gradientes.primera_cuota_geometrico(5_000_000, 0.10, i, 8)
+    assert a1 == pytest.approx(554_215.47, abs=TOL_PESOS)
+    cuotas = gradientes.cuotas_geometrico(a1, 0.10, 8)
+    assert npf.npv(i, [0] + cuotas) == pytest.approx(5_000_000, abs=TOL_PESOS)
+
+
+def test_gradiente_geometrico_g_igual_a_i():
+    vp = gradientes.vp_geometrico(100_000, 0.01, 0.01, 12)
+    assert vp == pytest.approx(100_000 * 12 / 1.01, abs=1e-6)
+    cuotas = gradientes.cuotas_geometrico(100_000, 0.01, 12)
+    assert npf.npv(0.01, [0] + cuotas) == pytest.approx(vp, abs=TOL_PESOS)
+
+
+def test_gradientes_decrecientes():
+    cuotas = gradientes.cuotas_aritmetico(1_000_000, -30_000, 24)
+    vp = gradientes.vp_aritmetico(1_000_000, -30_000, 0.01, 24)
+    assert npf.npv(0.01, [0] + cuotas) == pytest.approx(vp, abs=TOL_PESOS)
+    cuotas_g = gradientes.cuotas_geometrico(1_000_000, -0.05, 12)
+    vp_g = gradientes.vp_geometrico(1_000_000, -0.05, 0.01, 12)
+    assert npf.npv(0.01, [0] + cuotas_g) == pytest.approx(vp_g, abs=TOL_PESOS)
+
+
+def test_gradiente_vf_y_cruce():
+    vp = gradientes.vp_aritmetico(500_000, 20_000, 0.012, 24)
+    assert gradientes.vf_gradiente(vp, 0.012, 24) == pytest.approx(vp * 1.012 ** 24, abs=1e-6)
+    cuotas = gradientes.cuotas_aritmetico(500_000, 20_000, 24)
+    a_eq = gradientes.cuota_equivalente(vp, 0.012, 24)
+    t = gradientes.periodo_cruce(cuotas, a_eq)
+    assert cuotas[t - 1] > a_eq >= cuotas[t - 2]
+    assert gradientes.periodo_cruce([5, 5, 5], 10) is None
+
+
+def test_gradiente_aritmetico_no_confunde_g_con_cuota():
+    # Error de los Excel: poner la cuota fija donde va G
+    correcto = gradientes.vp_aritmetico(500_000, 20_000, 0.012, 24)
+    errado = gradientes.vp_aritmetico(500_000, 500_000, 0.012, 24)
+    assert abs(correcto - errado) > 1_000_000

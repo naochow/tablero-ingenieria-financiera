@@ -90,4 +90,19 @@ def grafico_barras(x, series, titulo, eje_x, eje_y, unidad="COP", apiladas=False
     return _aplicar_estilo(fig, titulo, eje_x, eje_y, unidad)
 
 
+def linea_referencia(fig, x, valor, nombre, color, unidad="COP"):
+    """Línea horizontal punteada (ej. la cuota equivalente) que aparece en la leyenda y el hover."""
+    fig.add_trace(
+        go.Scatter(
+            x=x,
+            y=[valor] * len(x),
+            name=nombre,
+            mode="lines",
+            line={"color": color, "width": 2, "dash": "dash"},
+            hovertemplate=_hover(nombre, unidad),
+        )
+    )
+    return fig
+
+
 CONFIG_PLOTLY = {"displaylogo": False}
