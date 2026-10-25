@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Entornos virtuales
+.venv/
+venv/
+env/
+
+# Pruebas
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Streamlit: se sube config.toml (tema), nunca los secretos
+.streamlit/secrets.toml
+
+# Editores
+.vscode/
+.idea/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Archivos temporales de Office (Excel de clase abiertos)
+~$*
+
+# Exportaciones locales de la app (descargas CSV de prueba)
+*.csv

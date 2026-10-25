@@ -1,0 +1,16 @@
+# Dependencias del Tablero de Ingeniería Financiera
+# Streamlit Community Cloud instala este archivo al desplegar.
+
+# Interfaz (st.navigation requiere 1.36 o superior)
+streamlit>=1.40,<2.0
+
+# Datos y cálculo
+pandas>=2.2,<3.0
+numpy>=1.26,<3.0
+numpy-financial>=1.0,<2.0
+
+# Gráficos interactivos
+plotly>=5.24,<7.0
+
+# Pruebas del motor de cálculo (finanzas/)
+pytest>=8.0,<9.0
