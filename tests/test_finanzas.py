@@ -3,7 +3,7 @@
 import numpy_financial as npf
 import pytest
 
-from finanzas import gradientes, interes, series, tasas
+from finanzas import amortizacion, gradientes, interes, series, tasas
 
 TOL_TASA = 1e-6
 
@@ -231,3 +231,140 @@ def test_gradiente_aritmetico_no_confunde_g_con_cuota():
     correcto = gradientes.vp_aritmetico(500_000, 20_000, 0.012, 24)
     errado = gradientes.vp_aritmetico(500_000, 500_000, 0.012, 24)
     assert abs(correcto - errado) > 1_000_000
+
+
+# --- amortizacion.py (Casos de clase UPB) ---
+
+def test_clase_upb_cuota_fija_vivienda_336m():
+    """Ejemplo 1 de clase: Crédito vivienda 70% de $480M = $336M al 17,65% EA a 180 meses."""
+    monto = 336_000_000
+    ea = 0.1765
+    i = (1 + ea) ** (1 / 12) - 1
+    assert i == pytest.approx(0.0136374809930246, abs=1e-12)
+
+    filas = amortizacion.tabla_amortizacion(monto, i, 180, sistema="frances")
+    assert len(filas) == 181
+    # Cuota exacta de clase
+    assert filas[1]["cuota"] == pytest.approx(5_020_599.75, abs=0.01)
+    assert filas[1]["intereses"] == pytest.approx(4_582_193.61, abs=0.01)
+    assert filas[1]["abono_capital"] == pytest.approx(438_406.14, abs=0.01)
+    assert filas[1]["saldo_final"] == pytest.approx(335_561_593.86, abs=0.01)
+    # Vr. cuotas mes 0 periodo 1
+    assert filas[1]["vr_cuota_mes_0"] == pytest.approx(4_953_052.59, abs=0.01)
+
+    # Suma de Vr. cuotas mes 0 debe ser igual al valor presente
+    resumen = amortizacion.resumen_amortizacion(filas)
+    assert resumen["suma_vr_cuotas_mes_0"] == pytest.approx(monto, abs=0.1)
+    assert filas[-1]["saldo_final"] == pytest.approx(0.0, abs=1e-3)
+
+
+def test_clase_upb_libre_inversion_cuota_inicial_144m():
+    """Ejemplo 2 de clase: Cuota inicial 30% = $144M al 22,56% EA a 24 meses."""
+    monto = 144_000_000
+    ea = 0.2256
+    i = (1 + ea) ** (1 / 12) - 1
+    assert i == pytest.approx(0.017097053144439, abs=1e-12)
+
+    filas = amortizacion.tabla_amortizacion(monto, i, 24, sistema="frances")
+    assert len(filas) == 25
+    assert filas[1]["cuota"] == pytest.approx(7_365_378.17, abs=0.01)
+    assert filas[1]["intereses"] == pytest.approx(2_461_975.65, abs=0.01)
+    assert filas[1]["abono_capital"] == pytest.approx(4_903_402.52, abs=0.01)
+    assert filas[-1]["saldo_final"] == pytest.approx(0.0, abs=1e-3)
+
+
+def test_clase_upb_gracia_con_pago_intereses_12_meses():
+    """Ejemplo 3 de clase: Gracia de 12 meses con pago de intereses."""
+    monto = 336_000_000
+    ea = 0.1765
+    i = (1 + ea) ** (1 / 12) - 1
+    filas = amortizacion.tabla_amortizacion(
+        monto, i, 180, sistema="frances", modalidad_gracia="con_interes", periodos_gracia=12
+    )
+    # Meses 1 a 12: solo intereses
+    for t in range(1, 13):
+        assert filas[t]["cuota"] == pytest.approx(4_582_193.61, abs=0.01)
+        assert filas[t]["abono_capital"] == 0.0
+        assert filas[t]["saldo_final"] == pytest.approx(monto, abs=0.01)
+
+    # Meses 13 a 180: nueva cuota fija
+    assert filas[13]["cuota"] == pytest.approx(5_106_838.01, abs=0.01)
+    assert filas[-1]["saldo_final"] == pytest.approx(0.0, abs=1e-3)
+
+
+def test_clase_upb_gracia_sin_pago_intereses_12_meses():
+    """Ejemplo 4 de clase: Gracia de 12 meses sin pago de intereses (capitalización)."""
+    monto = 336_000_000
+    ea = 0.1765
+    i = (1 + ea) ** (1 / 12) - 1
+    filas = amortizacion.tabla_amortizacion(
+        monto, i, 180, sistema="frances", modalidad_gracia="sin_interes", periodos_gracia=12
+    )
+    # Meses 1 a 12: cuota 0, saldo capitaliza
+    for t in range(1, 13):
+        assert filas[t]["cuota"] == 0.0
+        assert filas[t]["abono_capital"] == 0.0
+
+    # Al mes 12 el saldo exacto de clase es $395.304.000
+    assert filas[12]["saldo_final"] == pytest.approx(395_304_000.0, abs=0.01)
+    # Cuota meses 13..180
+    assert filas[13]["cuota"] == pytest.approx(6_008_194.92, abs=0.01)
+    assert filas[-1]["saldo_final"] == pytest.approx(0.0, abs=1e-3)
+
+
+def test_clase_upb_cuota_fija_con_pagos_extras_semestrales():
+    """Ejemplo 5 de clase: Pagos extras de $2.000.000 cada 6 meses."""
+    monto = 336_000_000
+    ea = 0.1765
+    i = (1 + ea) ** (1 / 12) - 1
+    filas = amortizacion.tabla_amortizacion(
+        monto,
+        i,
+        180,
+        sistema="frances",
+        tipo_pago_extra="periodico",
+        frecuencia_extra_meses=6,
+        monto_extra_periodico=2_000_000,
+        tasa_ea=ea,
+    )
+    # Cuota ordinaria exacta calculada en clase descontando el VA de las extras
+    assert filas[1]["cuota"] == pytest.approx(4_698_451.42, abs=0.01)
+    assert filas[6]["cuota_extra"] == pytest.approx(2_000_000, abs=0.01)
+    assert filas[6]["pago_total"] == pytest.approx(6_698_451.42, abs=0.01)
+    assert filas[-1]["saldo_final"] == pytest.approx(0.0, abs=1e-3)
+
+
+def test_clase_upb_abono_constante_capital():
+    """Ejemplo 6 de clase: Abono a capital constante (Alemán) para $336M a 180 meses."""
+    monto = 336_000_000
+    ea = 0.1765
+    i = (1 + ea) ** (1 / 12) - 1
+    filas = amortizacion.tabla_amortizacion(monto, i, 180, sistema="aleman")
+    abono_esperado = monto / 180  # 1.866.666,67
+    for f in filas[1:]:
+        assert f["abono_capital"] == pytest.approx(abono_esperado, abs=0.01)
+
+    assert filas[1]["cuota"] == pytest.approx(6_448_860.28, abs=0.01)
+    assert filas[-1]["saldo_final"] == pytest.approx(0.0, abs=1e-3)
+
+
+def test_clase_upb_abono_constante_con_pagos_extras():
+    """Ejemplo 7 de clase: Abono constante con pagos extras semestrales de $2.000.000."""
+    monto = 336_000_000
+    ea = 0.1765
+    i = (1 + ea) ** (1 / 12) - 1
+    filas = amortizacion.tabla_amortizacion(
+        monto,
+        i,
+        180,
+        sistema="aleman",
+        tipo_pago_extra="periodico",
+        frecuencia_extra_meses=6,
+        monto_extra_periodico=2_000_000,
+    )
+    # En clase: abono ordinario = (336M - 60M) / 180 = 1.533.333,33
+    assert filas[1]["abono_capital"] == pytest.approx(1_533_333.33, abs=0.01)
+    assert filas[1]["cuota"] == pytest.approx(6_115_526.95, abs=0.01)
+    assert filas[6]["cuota_extra"] == pytest.approx(2_000_000, abs=0.01)
+    assert filas[6]["pago_total"] == pytest.approx(8_010_972.93, abs=0.01)
+    assert filas[-1]["saldo_final"] == pytest.approx(0.0, abs=1e-3)
