@@ -1,0 +1,58 @@
+{
+  "casos": [
+    {
+      "id": "vehiculo_sufi_davivienda",
+      "titulo": "Caso 1: Crédito de Vehículo (Sufi vs. Davivienda)",
+      "descripcion": "Compra de vehículo por $35.000.000 COP a 48 meses. Comparación de cotizaciones en Mes Vencido (MV) y Nominal Anual Mes Vencido (NAMV), modelado de cuotas y evaluación de sistemas Francés vs. Alemán.",
+      "categoria": "Vehículo y Consumo",
+      "temas": ["Equivalencia de Tasas", "Series Uniformes", "Sistemas de Amortización"],
+      "parametros": {
+        "monto": 35000000,
+        "plazo_meses": 48,
+        "ofertas": [
+          {
+            "entidad": "Sufi (Bancolombia)",
+            "tasa_valor": 0.0165,
+            "codigo_tasa": "MV",
+            "descripcion": "1,65% Mes Vencido (MV)"
+          },
+          {
+            "entidad": "Davivienda",
+            "tasa_valor": 0.2050,
+            "codigo_tasa": "NAMV",
+            "descripcion": "20,50% Nominal Anual Mes Vencido (NAMV)"
+          }
+        ]
+      }
+    },
+    {
+      "id": "inversion_bancolombia_nu",
+      "titulo": "Caso 2: Rentabilidad Real e Inversión (Bancolombia vs. Nu / Lulo)",
+      "descripcion": "Comparación de alternativas de inversión de capital: CDT tradicional a tasa fija vs. Cuenta de alto rendimiento (Nu/Lulo). Evaluación de interés simple vs. compuesto, retención en la fuente (4%) y rentabilidad real neta de inflación.",
+      "categoria": "Inversión y Rentabilidad",
+      "temas": ["Interés Simple vs. Compuesto", "Equivalencia de Tasas", "Retención en la Fuente", "Rentabilidad Real"],
+      "parametros": {
+        "capital": 20000000,
+        "plazo_dias": 360,
+        "tasa_cdt_ea": 0.1080,
+        "tasa_cuenta_ea": 0.1300,
+        "retencion_fuente": 0.04,
+        "inflacion_ipc": 0.0550
+      }
+    },
+    {
+      "id": "ahorro_cuota_inicial_gradientes",
+      "titulo": "Caso 3: Ahorro Programado para Cuota Inicial (Gradientes)",
+      "descripcion": "Plan de ahorro a 36 meses en un fondo de inversión al 0,60% mensual vencido (MV), iniciando con $500.000 COP y aumentando progresivamente mediante gradiente aritmético (+ $25.000/mes) o geométrico (+ 2%/mes). Comparación con cuota fija equivalente.",
+      "categoria": "Ahorro e Inversión",
+      "temas": ["Gradiente Aritmético", "Gradiente Geométrico", "Cuota Uniforme Equivalente"],
+      "parametros": {
+        "a1": 500000,
+        "plazo_meses": 36,
+        "tasa_mv": 0.0060,
+        "gradiente_aritmetico_G": 25000,
+        "gradiente_geometrico_g": 0.02
+      }
+    }
+  ]
+}
