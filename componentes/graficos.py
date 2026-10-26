@@ -9,6 +9,7 @@ import plotly.graph_objects as go
 from componentes.formato import SEPARADORES_PLOTLY
 
 GRIS_CAPITAL = "#64748B"
+CONFIG_PLOTLY = {"displaylogo": False}
 
 _FORMATO_HOVER = {"COP": "$ %{y:,.0f}", "%": "%{y:.2%}"}
 
