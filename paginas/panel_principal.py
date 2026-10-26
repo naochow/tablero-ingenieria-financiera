@@ -1,6 +1,8 @@
-"""Página de inicio (Landing Page): resumen del tablero, accesos a casos aplicados y módulos temáticos."""
+"""Página de inicio (Landing Page): Resumen ejecutivo fintech, KPIs y módulos del curso."""
 
+from pathlib import Path
 import streamlit as st
+import streamlit.components.v1 as components
 
 from componentes import estilos
 from componentes.formato import pesos, porcentaje
@@ -8,166 +10,365 @@ from componentes.formato import pesos, porcentaje
 TEMA = "principal"
 COLOR = estilos.TEMAS[TEMA]["color"]
 
-explicar = estilos.encabezado(
-    TEMA,
-    "Tablero de Ingeniería Financiera",
-    "Plataforma interactiva para la modelación matemática, visualización pedagógica y toma de decisiones financieras integradas.",
+# Top metadata bar
+st.markdown(
+    """
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem; padding: 0.3rem 0.2rem;">
+      <div style="display: flex; align-items: center; gap: 0.6rem;">
+        <span style="font-size: 0.72rem; font-weight: 700; color: #818CF8; background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); padding: 0.2rem 0.65rem; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.05em;">
+          Taller Final • 20%
+        </span>
+        <span style="font-size: 0.85rem; font-weight: 600; color: #E2E8F0;">Panel Principal de Síntesis</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; color: #94A3B8; background: #0F172A; border: 1px solid #1E293B; padding: 0.25rem 0.75rem; border-radius: 9999px;">
+        <i class="fa-solid fa-calendar-check" style="color: #6366F1;"></i>
+        <span>Entrega: Octubre 29, 2026</span>
+      </div>
+    </div>
+    """,
+    unsafe_allow_html=True,
 )
 
-# Tarjeta de bienvenida y presentación institucional
-with estilos.tarjeta("bienvenida"):
-    c_info, c_kpis = st.columns([2, 1], gap="medium")
-    with c_info:
-        st.markdown(
-            "Bienvenido al **Tablero de Ingeniería Financiera**, desarrollado para la asignatura "
-            "de Ingeniería Financiera de la **Universidad Pontificia Bolivariana (UPB)** por "
-            "**Naomi Chow Morelos** y **Daniel Lopez Lopez**."
-        )
-        st.markdown(
-            "Esta herramienta sustituye los modelos estáticos en hojas de cálculo por una suite interactiva "
-            "diseñada con estándares de la banca colombiana, validaciones matemáticas automatizadas y "
-            "gráficos de alta resolución en Plotly."
-        )
-    with c_kpis:
-        st.caption("Estructura del tablero:")
-        st.markdown(f"- **6 Módulos temáticos:** Desde interés simple hasta amortización.")
-        st.markdown(f"- **3 Casos aplicados:** Decisiones reales de crédito, inversión y ahorro.")
-        st.markdown(f"- **100% verificado:** Pruebas unitarias sobre fórmulas de clase.")
-
-st.divider()
-
-# ==============================================================================
-# SECCIÓN 1: CASOS PRÁCTICOS APLICADOS (DESTACADOS)
-# ==============================================================================
-st.subheader("🎯 Casos Prácticos de Toma de Decisiones")
-st.caption("Escenarios reales de la economía colombiana resueltos combinando los conceptos teóricos.")
-
-col_c1, col_c2, col_c3 = st.columns(3, gap="medium")
-
-with col_c1, estilos.tarjeta("card_caso1"):
-    st.markdown("#### 🚗 Crédito de Vehículo")
-    st.markdown("**Sufi vs. Davivienda (48 meses)**")
-    st.caption("Monto: $35.000.000 COP")
+# Hero Header tipo banner fintech
+with st.container(key="encabezado_principal"):
     st.markdown(
-        "- **Dilema de tasas:** Comparación justa entre 1,65% MV (21,70% EA) vs. 20,50% NAMV (22,54% EA).\n"
-        "- **Sistemas:** Cuota Fija (Francés) para liquidez vs. Abono Constante (Alemán) para ahorro de $2,6M en intereses."
+        """
+        <div style="max-width: 900px;">
+          <div style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.2rem 0.7rem; border-radius: 9999px; background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); color: #A5B4FC; font-size: 0.75rem; font-weight: 600; margin-bottom: 0.6rem;">
+            <i class="fa-solid fa-graduation-cap"></i> Universidad Pontificia Bolivariana • Escuela de Ingenierías
+          </div>
+          <h1 style="font-size: 2.1rem; font-weight: 800; color: #FFFFFF; letter-spacing: -0.03em; margin: 0 0 0.4rem 0;">
+            Tablero de Visualización de Ingeniería Financiera
+          </h1>
+          <p style="color: #CBD5E1; font-size: 0.95rem; line-height: 1.55; margin-bottom: 1rem;">
+            Plataforma interactiva para la síntesis de conceptos matemáticos financieros: regímenes de interés,
+            equivalencia de tasas, anualidades, gradientes y sistemas de amortización aplicados al mercado bancario colombiano.
+          </p>
+          <div style="display: flex; flex-wrap: wrap; gap: 1rem; font-size: 0.75rem; color: #94A3B8;">
+            <span><i class="fa-solid fa-users" style="color: #64748B; margin-right: 0.3rem;"></i> Equipo: <strong style="color: #F1F5F9;">Naomi Chow & Daniel Lopez</strong></span>
+            <span><i class="fa-solid fa-user-tie" style="color: #64748B; margin-right: 0.3rem;"></i> Docente: <strong style="color: #F1F5F9;">Adriana Arango L.</strong></span>
+            <span><i class="fa-solid fa-calendar" style="color: #64748B; margin-right: 0.3rem;"></i> Vigencia: <strong style="color: #F1F5F9;">Semestre 2026-2</strong></span>
+            <span><i class="fa-solid fa-calculator" style="color: #64748B; margin-right: 0.3rem;"></i> Base: <strong style="color: #F1F5F9;">360 Comercial / E.T. Art 395</strong></span>
+          </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
-    if st.button("Explorar Caso de Vehículo", key="btn_caso1", use_container_width=True):
-        st.switch_page("paginas/casos_aplicados.py")
 
-with col_c2, estilos.tarjeta("card_caso2"):
-    st.markdown("#### 🏦 Inversión y Rentabilidad")
-    st.markdown("**CDT Bancolombia vs. Nu / Lulo**")
-    st.caption("Capital: $20.000.000 COP")
+# 4 KPI Metrics Grid (igual que en el diseño de Tailwind)
+k1, k2, k3, k4 = st.columns(4, gap="small")
+
+with k1:
     st.markdown(
-        "- **Interés simple vs. compuesto:** Retiro periódico de intereses vs. capitalización continua.\n"
-        "- **Rentabilidad real:** Impacto de la retención en la fuente (4%) e inflación (Ecuación de Fisher).\n"
-        "- **Liquidez:** Dinero bloqueado vs. disponibilidad 24/7."
+        """
+        <div class="kpi" style="--color: #10B981; --suave: rgba(16, 185, 129, 0.15);">
+          <div style="display: flex; justify-content: space-between; align-items: center; color: #94A3B8; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">
+            <span>CASO 1: CDT BANCOLOMBIA</span>
+            <span class="kpi-icono" style="width: 1.8rem; height: 1.8rem; font-size: 1rem;"><i class="fa-solid fa-piggy-bank"></i></span>
+          </div>
+          <div class="kpi-valor" style="color: #FFFFFF; font-size: 1.6rem; margin-top: 0.3rem;">9.50% <span style="font-size: 0.75rem; color: #94A3B8; font-weight: normal;">E.A.</span></div>
+          <div style="font-size: 0.75rem; color: #34D399; margin-top: 0.25rem; display: flex; align-items: center; gap: 0.3rem;">
+            <i class="fa-solid fa-shield-halved"></i> TEA Neta: 9.12% post-retefuente
+          </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
-    if st.button("Explorar Caso de Inversión", key="btn_caso2", use_container_width=True):
-        st.switch_page("paginas/casos_aplicados.py")
 
-with col_c3, estilos.tarjeta("card_caso3"):
-    st.markdown("#### 📈 Ahorro para Cuota Inicial")
-    st.markdown("**Gradiente Aritmético y Geométrico**")
-    st.caption("Plan a 36 meses al 0,60% MV")
+with k2:
     st.markdown(
-        "- **Aportes crecientes:** Inicio suave con $500.000 y subidas de $25.000/mes o 2%/mes.\n"
-        "- **Equivalencia uniforme:** Cuota fija equivalente para acumular el mismo capital final ($VF).\n"
-        "- **Poder del interés:** Más del 12% del capital proviene de rendimientos ganados."
+        """
+        <div class="kpi" style="--color: #6366F1; --suave: rgba(99, 102, 241, 0.15);">
+          <div style="display: flex; justify-content: space-between; align-items: center; color: #94A3B8; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">
+            <span>CASO 2: CRÉDITO SUFI</span>
+            <span class="kpi-icono" style="width: 1.8rem; height: 1.8rem; font-size: 1rem;"><i class="fa-solid fa-car"></i></span>
+          </div>
+          <div class="kpi-valor" style="color: #FFFFFF; font-size: 1.6rem; margin-top: 0.3rem;">$40.000.000 <span style="font-size: 0.75rem; color: #94A3B8; font-weight: normal;">COP</span></div>
+          <div style="font-size: 0.75rem; color: #818CF8; margin-top: 0.25rem; display: flex; align-items: center; gap: 0.3rem;">
+            <i class="fa-solid fa-tag"></i> 1.25% M.V. (16.08% E.A.)
+          </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
-    if st.button("Explorar Caso de Gradientes", key="btn_caso3", use_container_width=True):
-        st.switch_page("paginas/casos_aplicados.py")
 
-st.divider()
-
-# ==============================================================================
-# SECCIÓN 2: MÓDULOS TEMÁTICOS Y MOTOR FINANCIERO
-# ==============================================================================
-st.subheader("📚 Módulos de Cálculo y Fundamentos")
-st.caption("Laboratorios interactivos organizados según el avance del programa académico.")
-
-m1, m2 = st.columns(2, gap="medium")
-
-with m1:
-    with estilos.tarjeta("mod_is"):
-        st.markdown("##### 1. Interés Simple")
-        st.markdown(
-            "Cálculo de valor futuro ($VF$), valor presente ($VP$), tasas y plazos bajo capitalización lineal. "
-            "Soporte para convención comercial (360 días) y exacta (365 días)."
-        )
-        if st.button("Ir a Interés Simple", key="btn_nav_is", use_container_width=True):
-            st.switch_page("paginas/interes_simple.py")
-
-    with estilos.tarjeta("mod_tasas"):
-        st.markdown("##### 3. Rentabilidad y Tasas")
-        st.markdown(
-            "Conversor central multidireccional: Efectiva Anual (EA), Nominales (NAMV, NATV, etc.), "
-            "periódicas vencidas y anticipadas, retención en la fuente, tasas combinadas (IPC + puntos) y tasa real."
-        )
-        if st.button("Ir a Rentabilidad y Tasas", key="btn_nav_tasas", use_container_width=True):
-            st.switch_page("paginas/rentabilidad_tasas.py")
-
-    with estilos.tarjeta("mod_grad"):
-        st.markdown("##### 5. Gradientes Aritmético y Geométrico")
-        st.markdown(
-            "Modelación de flujos variables que aumentan o disminuyen en una cantidad fija ($G$) o en un "
-            "porcentaje constante ($g$). Cálculo de valor presente, valor futuro y cuota fija equivalente."
-        )
-        if st.button("Ir a Gradientes", key="btn_nav_grad", use_container_width=True):
-            st.switch_page("paginas/gradientes.py")
-
-with m2:
-    with estilos.tarjeta("mod_ic"):
-        st.markdown("##### 2. Interés Compuesto")
-        st.markdown(
-            "El valor del dinero en el tiempo. Capitalización periódica de intereses, frecuencia de capitalización "
-            "(diaria, mensual, semestral), regla del tiempo para duplicar y ecuaciones de valor."
-        )
-        if st.button("Ir a Interés Compuesto", key="btn_nav_ic", use_container_width=True):
-            st.switch_page("paginas/interes_compuesto.py")
-
-    with estilos.tarjeta("mod_series"):
-        st.markdown("##### 4. Series Uniformes (Anualidades)")
-        st.markdown(
-            "Flujos constantes periódicos: cuota uniforme ($A$), valor presente ($VP$) y valor futuro ($VF$). "
-            "Diferenciación estricta entre anualidades vencidas y anticipadas con diagramas de flujo de caja."
-        )
-        if st.button("Ir a Series Uniformes", key="btn_nav_series", use_container_width=True):
-            st.switch_page("paginas/series_uniformes.py")
-
-    with estilos.tarjeta("mod_amort"):
-        st.markdown("##### 6. Amortización y Planes de Pago")
-        st.markdown(
-            "Tablas completas de amortización: Sistema Francés (cuota fija), Sistema Alemán (abono constante), "
-            "periodos de gracia (con y sin pago de intereses) y pagos extras programados o puntuales."
-        )
-        if st.button("Ir a Amortización", key="btn_nav_amort", use_container_width=True):
-            st.switch_page("paginas/amortizacion.py")
-
-st.divider()
-
-# ==============================================================================
-# SECCIÓN 3: GUÍA RÁPIDA DE USO DEL TABLERO
-# ==============================================================================
-st.subheader("💡 Características y Guía de Uso")
-
-guia1, guia2, guia3 = st.columns(3)
-with guia1:
-    st.markdown("**⚡ Ejemplos en un Clic**")
+with k3:
     st.markdown(
-        "Cada módulo incluye botones superiores con ejercicios reales de clase y del mercado financiero colombiano "
-        "para cargar datos instantáneamente."
+        """
+        <div class="kpi" style="--color: #F59E0B; --suave: rgba(245, 158, 11, 0.15);">
+          <div style="display: flex; justify-content: space-between; align-items: center; color: #94A3B8; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">
+            <span>CASO 3: AHORRO VIVIENDA</span>
+            <span class="kpi-icono" style="width: 1.8rem; height: 1.8rem; font-size: 1rem;"><i class="fa-solid fa-building"></i></span>
+          </div>
+          <div class="kpi-valor" style="color: #FFFFFF; font-size: 1.6rem; margin-top: 0.3rem;">$37.284.190 <span style="font-size: 0.75rem; color: #94A3B8; font-weight: normal;">VF</span></div>
+          <div style="font-size: 0.75rem; color: #FBBF24; margin-top: 0.25rem; display: flex; align-items: center; gap: 0.3rem;">
+            <i class="fa-solid fa-arrow-trend-up"></i> Gradiente: +$25.000/mes
+          </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
-with guia2:
-    st.markdown("**🧠 Función 'Explícamelo'**")
+
+with k4:
     st.markdown(
-        "Activa el interruptor en la parte superior derecha de cada pantalla para desplegar explicaciones didácticas "
-        "en lenguaje claro y fórmulas matemáticas en KaTeX."
+        """
+        <div class="kpi" style="--color: #10B981; --suave: rgba(16, 185, 129, 0.15);">
+          <div style="display: flex; justify-content: space-between; align-items: center; color: #94A3B8; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">
+            <span>VERIFICACIONES</span>
+            <span class="kpi-icono" style="width: 1.8rem; height: 1.8rem; font-size: 1rem;"><i class="fa-solid fa-circle-check"></i></span>
+          </div>
+          <div class="kpi-valor" style="color: #34D399; font-size: 1.6rem; margin-top: 0.3rem;">7 / 7 OK</div>
+          <div style="font-size: 0.75rem; color: #94A3B8; margin-top: 0.25rem; display: flex; align-items: center; gap: 0.3rem;">
+            <i class="fa-solid fa-check-double" style="color: #10B981;"></i> Validado contra fórmulas
+          </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
-with guia3:
-    st.markdown("**📥 Exportación y Verificación**")
+
+# Pestañas principales de navegación
+tab_resumen, tab_standalone = st.tabs(["📊 Vista Modular Streamlit", "⚡ Dashboard Ultra Fintech (HTML/JS en Vivo)"])
+
+with tab_resumen:
+    # ==============================================================================
+    # SECCIÓN 1: RESUMEN EJECUTIVO DE CASOS FINANCIEROS APLICADOS
+    # ==============================================================================
+    with estilos.tarjeta("tabla_ejecutiva"):
+        col_t1, col_t2 = st.columns([3, 1])
+        with col_t1:
+            st.markdown(
+                """
+                <h3 style="font-size: 1.15rem; font-weight: 800; color: #FFFFFF; display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.2rem;">
+                  <i class="fa-solid fa-briefcase" style="color: #10B981;"></i>
+                  Resumen Ejecutivo de Casos Financieros Aplicados
+                </h3>
+                <p style="font-size: 0.8rem; color: #94A3B8; margin: 0;">Síntesis comparativa de costos, rendimientos y decisión recomendada.</p>
+                """,
+                unsafe_allow_html=True,
+            )
+        with col_t2:
+            if st.button("Ver Simuladores Detallados →", key="btn_ir_casos_top", use_container_width=True):
+                st.switch_page("paginas/casos_aplicados.py")
+
+        st.markdown(
+            """
+            <div style="overflow-x: auto; margin-top: 1rem;">
+              <table style="width: 100%; text-align: left; border-collapse: separate; border-spacing: 0;">
+                <thead>
+                  <tr>
+                    <th>Caso / Producto</th>
+                    <th>Entidad Financiera</th>
+                    <th>Tasa Efectiva Anual (E.A.)</th>
+                    <th>Total Pagado / Recibido</th>
+                    <th>Intereses Totales</th>
+                    <th>Decisión Recomendada</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td style="font-family: 'Inter', sans-serif; font-weight: 600; color: #FFFFFF;">
+                      Caso 1: CDT Tradicional vs Cajita de Ahorro
+                    </td>
+                    <td style="font-family: 'Inter', sans-serif;">Bancolombia vs Nu Colombia</td>
+                    <td>
+                      <span style="color: #34D399; font-weight: 600;">11.00% E.A. (Nu)</span> vs <span style="color: #94A3B8;">9.50% (Bancolombia)</span>
+                    </td>
+                    <td>$11.056.000 COP neto</td>
+                    <td style="color: #34D399; font-weight: 600;">+$1.056.000 COP netos</td>
+                    <td style="font-family: 'Inter', sans-serif;">
+                      <span class="etiqueta" style="--oscuro: #10B981; --suave: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.4); color: #34D399;">
+                        Nu Colombia (Mayor E.A. y Liquidez 24/7)
+                      </span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="font-family: 'Inter', sans-serif; font-weight: 600; color: #FFFFFF;">
+                      Caso 2: Crédito Vehicular ($40M a 48 meses)
+                    </td>
+                    <td style="font-family: 'Inter', sans-serif;">Sufi (Grupo Bancolombia)</td>
+                    <td style="color: #818CF8; font-weight: 600;">16.08% E.A. (1.25% M.V.)</td>
+                    <td>$53.486.208 (Francés) vs $52.250.000 (Alemán)</td>
+                    <td style="color: #FB7185; font-weight: 600;">-$13.486.208 COP (Francés)</td>
+                    <td style="font-family: 'Inter', sans-serif;">
+                      <span class="etiqueta" style="--oscuro: #6366F1; --suave: rgba(99, 102, 241, 0.15); border-color: rgba(99, 102, 241, 0.4); color: #A5B4FC;">
+                        Abono Constante (Ahorro $1.236.208 en intereses)
+                      </span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="font-family: 'Inter', sans-serif; font-weight: 600; color: #FFFFFF;">
+                      Caso 3: Plan Semilla Cuota Inicial Vivienda
+                    </td>
+                    <td style="font-family: 'Inter', sans-serif;">Fondo Fiduciario Bancolombia</td>
+                    <td style="color: #FBBF24; font-weight: 600;">7.44% E.A. (0.60% M.V.)</td>
+                    <td>$37.284.190 COP (Meta acumulada)</td>
+                    <td style="color: #34D399; font-weight: 600;">+$3.584.190 COP rendimientos</td>
+                    <td style="font-family: 'Inter', sans-serif;">
+                      <span class="etiqueta" style="--oscuro: #F59E0B; --suave: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.4); color: #FBBF24;">
+                        Gradiente Aritmético (Facilidad inicial $500k)
+                      </span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    # ==============================================================================
+    # SECCIÓN 2: ACCESO RÁPIDO A MÓDULOS DEL CURSO (6 CARDS)
+    # ==============================================================================
     st.markdown(
-        "Descarga cualquier tabla de amortización o flujo de caja en formato CSV y revisa las tarjetas de comprobación "
-        "automática que validan los resultados contra métodos independientes."
+        """
+        <div style="margin-top: 1.5rem; margin-bottom: 0.6rem;">
+          <h3 style="font-size: 0.82rem; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.08em; margin: 0;">
+            Acceso Rápido a Módulos del Taller
+          </h3>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
+
+    m_col1, m_col2, m_col3 = st.columns(3, gap="medium")
+
+    with m_col1:
+        with estilos.tarjeta("card_is"):
+            st.markdown(
+                """
+                <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.6rem;">
+                  <div style="width: 2.4rem; height: 2.4rem; border-radius: 10px; background: rgba(6, 182, 212, 0.15); color: #06B6D4; border: 1px solid rgba(6, 182, 212, 0.4); display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">
+                    <i class="fa-solid fa-arrow-trend-up"></i>
+                  </div>
+                  <div>
+                    <h4 style="margin: 0; font-size: 0.95rem; color: #FFFFFF;">1. Interés Simple</h4>
+                    <p style="margin: 0; font-size: 0.75rem; color: #94A3B8;">Régimen lineal de capitalización</p>
+                  </div>
+                </div>
+                <p style="font-size: 0.8rem; color: #CBD5E1; min-height: 40px; margin-bottom: 0.8rem;">
+                  Despejes exactos de $VP$, $VF$, tasa periódica $i$ y plazo $n$. Soporte para base Comercial (360) y Exacta (365).
+                </p>
+                """,
+                unsafe_allow_html=True,
+            )
+            if st.button("Abrir Interés Simple", key="btn_nav_is", use_container_width=True):
+                st.switch_page("paginas/interes_simple.py")
+
+        st.write("")
+        with estilos.tarjeta("card_series"):
+            st.markdown(
+                """
+                <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.6rem;">
+                  <div style="width: 2.4rem; height: 2.4rem; border-radius: 10px; background: rgba(139, 92, 246, 0.15); color: #8B5CF6; border: 1px solid rgba(139, 92, 246, 0.4); display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">
+                    <i class="fa-solid fa-bars-staggered"></i>
+                  </div>
+                  <div>
+                    <h4 style="margin: 0; font-size: 0.95rem; color: #FFFFFF;">4. Series Uniformes</h4>
+                    <p style="margin: 0; font-size: 0.75rem; color: #94A3B8;">Anualidades y cuotas constantes</p>
+                  </div>
+                </div>
+                <p style="font-size: 0.8rem; color: #CBD5E1; min-height: 40px; margin-bottom: 0.8rem;">
+                  Modelado de anualidades vencidas y anticipadas. Despejes cerrados de cuota ($A$), valor presente ($VP$) y valor futuro ($VF$).
+                </p>
+                """,
+                unsafe_allow_html=True,
+            )
+            if st.button("Abrir Series Uniformes", key="btn_nav_series", use_container_width=True):
+                st.switch_page("paginas/series_uniformes.py")
+
+    with m_col2:
+        with estilos.tarjeta("card_ic"):
+            st.markdown(
+                """
+                <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.6rem;">
+                  <div style="width: 2.4rem; height: 2.4rem; border-radius: 10px; background: rgba(16, 185, 129, 0.15); color: #10B981; border: 1px solid rgba(16, 185, 129, 0.4); display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">
+                    <i class="fa-solid fa-chart-area"></i>
+                  </div>
+                  <div>
+                    <h4 style="margin: 0; font-size: 0.95rem; color: #FFFFFF;">2. Interés Compuesto</h4>
+                    <p style="margin: 0; font-size: 0.75rem; color: #94A3B8;">Régimen exponencial continuo</p>
+                  </div>
+                </div>
+                <p style="font-size: 0.8rem; color: #CBD5E1; min-height: 40px; margin-bottom: 0.8rem;">
+                  Capitalización en cascada, brecha de valor frente a interés simple y despeje logarítmico de periodos $n$.
+                </p>
+                """,
+                unsafe_allow_html=True,
+            )
+            if st.button("Abrir Interés Compuesto", key="btn_nav_ic", use_container_width=True):
+                st.switch_page("paginas/interes_compuesto.py")
+
+        st.write("")
+        with estilos.tarjeta("card_grad"):
+            st.markdown(
+                """
+                <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.6rem;">
+                  <div style="width: 2.4rem; height: 2.4rem; border-radius: 10px; background: rgba(244, 63, 94, 0.15); color: #F43F5E; border: 1px solid rgba(244, 63, 94, 0.4); display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">
+                    <i class="fa-solid fa-stairs"></i>
+                  </div>
+                  <div>
+                    <h4 style="margin: 0; font-size: 0.95rem; color: #FFFFFF;">5. Gradientes Financieros</h4>
+                    <p style="margin: 0; font-size: 0.75rem; color: #94A3B8;">Flujos crecientes y decrecientes</p>
+                  </div>
+                </div>
+                <p style="font-size: 0.8rem; color: #CBD5E1; min-height: 40px; margin-bottom: 0.8rem;">
+                  Series aritméticas ($G$ en pesos) y geométricas ($g$ en porcentaje). Cálculo analítico de cuota fija equivalente.
+                </p>
+                """,
+                unsafe_allow_html=True,
+            )
+            if st.button("Abrir Gradientes", key="btn_nav_grad", use_container_width=True):
+                st.switch_page("paginas/gradientes.py")
+
+    with m_col3:
+        with estilos.tarjeta("card_tasas"):
+            st.markdown(
+                """
+                <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.6rem;">
+                  <div style="width: 2.4rem; height: 2.4rem; border-radius: 10px; background: rgba(245, 158, 11, 0.15); color: #F59E0B; border: 1px solid rgba(245, 158, 11, 0.4); display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">
+                    <i class="fa-solid fa-percent"></i>
+                  </div>
+                  <div>
+                    <h4 style="margin: 0; font-size: 0.95rem; color: #FFFFFF;">3. Rentabilidad y Tasas</h4>
+                    <p style="margin: 0; font-size: 0.75rem; color: #94A3B8;">Equivalencias y Retefuente</p>
+                  </div>
+                </div>
+                <p style="font-size: 0.8rem; color: #CBD5E1; min-height: 40px; margin-bottom: 0.8rem;">
+                  Conversor universal multidireccional (EA, NAMV, periodicidades), tasas combinadas (Fisher) y descuento del 4% tributario.
+                </p>
+                """,
+                unsafe_allow_html=True,
+            )
+            if st.button("Abrir Rentabilidad y Tasas", key="btn_nav_tasas", use_container_width=True):
+                st.switch_page("paginas/rentabilidad_tasas.py")
+
+        st.write("")
+        with estilos.tarjeta("card_amort"):
+            st.markdown(
+                """
+                <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.6rem;">
+                  <div style="width: 2.4rem; height: 2.4rem; border-radius: 10px; background: rgba(59, 130, 246, 0.15); color: #3B82F6; border: 1px solid rgba(59, 130, 246, 0.4); display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">
+                    <i class="fa-solid fa-table-list"></i>
+                  </div>
+                  <div>
+                    <h4 style="margin: 0; font-size: 0.95rem; color: #FFFFFF;">6. Tablas de Amortización</h4>
+                    <p style="margin: 0; font-size: 0.75rem; color: #94A3B8;">Sistemas Francés vs Alemán</p>
+                  </div>
+                </div>
+                <p style="font-size: 0.8rem; color: #CBD5E1; min-height: 40px; margin-bottom: 0.8rem;">
+                  Tablas completas con períodos de gracia, pagos extraordinarios periódicos y verificación matemática a saldo exacto cero.
+                </p>
+                """,
+                unsafe_allow_html=True,
+            )
+            if st.button("Abrir Amortización", key="btn_nav_amort", use_container_width=True):
+                st.switch_page("paginas/amortizacion.py")
+
+with tab_standalone:
+    st.info("💡 A continuación se despliega la interfaz gráfica interactiva del Dashboard Fintech completa con motor JavaScript y Chart.js en tiempo real:")
+    html_path = Path(__file__).resolve().parent.parent / "datos" / "dashboard_fintech.html"
+    if html_path.exists():
+        contenido_html = html_path.read_text(encoding="utf-8")
+        components.html(contenido_html, height=880, scrolling=True)
+    else:
+        st.warning("No se encontró el archivo del dashboard fintech en datos/dashboard_fintech.html")

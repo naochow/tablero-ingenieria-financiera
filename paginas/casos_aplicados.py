@@ -158,16 +158,16 @@ if caso_seleccionado_id == "vehiculo_sufi_davivienda":
             )
         )
         fig_cuotas.update_layout(
-            title={"text": "Evolución de las cuotas mensuales: Francés vs. Alemán", "x": 0},
-            font={"family": "Source Sans 3, sans-serif"},
-            paper_bgcolor="#FFFFFF",
-            plot_bgcolor="#FFFFFF",
+            title={"text": "<b>Evolución de las cuotas mensuales: Francés vs. Alemán</b>", "x": 0.01, "font": {"color": "#FFFFFF", "size": 15}},
+            font={"family": "Inter, sans-serif", "color": "#94A3B8"},
+            paper_bgcolor="rgba(15, 23, 42, 0.4)",
+            plot_bgcolor="rgba(15, 23, 42, 0.4)",
             hovermode="x unified",
-            legend={"orientation": "h", "y": 1.05},
-            margin={"l": 10, "r": 10, "t": 60, "b": 10},
+            legend={"orientation": "h", "y": 1.05, "font": {"color": "#CBD5E1"}},
+            margin={"l": 15, "r": 15, "t": 60, "b": 15},
         )
-        fig_cuotas.update_yaxes(title="Cuota a pagar ($ COP)", tickprefix="$ ", tickformat=",.0f")
-        fig_cuotas.update_xaxes(title="Mes")
+        fig_cuotas.update_yaxes(title="Cuota a pagar ($ COP)", tickprefix="$ ", tickformat=",.0f", gridcolor="rgba(51, 65, 85, 0.35)", linecolor="rgba(51, 65, 85, 0.6)", color="#94A3B8")
+        fig_cuotas.update_xaxes(title="Mes", gridcolor="rgba(51, 65, 85, 0.35)", linecolor="rgba(51, 65, 85, 0.6)", color="#94A3B8")
         st.plotly_chart(fig_cuotas, width="stretch", config=graficos.CONFIG_PLOTLY)
 
         # Veredicto financiero
@@ -321,15 +321,16 @@ elif caso_seleccionado_id == "inversion_bancolombia_nu":
         )
         fig_inv.update_layout(
             barmode="stack",
-            title={"text": f"Descomposición del Capital Final tras {plazo_dias} días", "x": 0},
-            font={"family": "Source Sans 3, sans-serif"},
-            paper_bgcolor="#FFFFFF",
-            plot_bgcolor="#FFFFFF",
+            title={"text": f"<b>Descomposición del Capital Final tras {plazo_dias} días</b>", "x": 0.01, "font": {"color": "#FFFFFF", "size": 15}},
+            font={"family": "Inter, sans-serif", "color": "#94A3B8"},
+            paper_bgcolor="rgba(15, 23, 42, 0.4)",
+            plot_bgcolor="rgba(15, 23, 42, 0.4)",
             hovermode="x unified",
-            legend={"orientation": "h", "y": 1.05},
-            margin={"l": 10, "r": 10, "t": 60, "b": 10},
+            legend={"orientation": "h", "y": 1.05, "font": {"color": "#CBD5E1"}},
+            margin={"l": 15, "r": 15, "t": 60, "b": 15},
         )
-        fig_inv.update_yaxes(title="Valor ($ COP)", tickprefix="$ ", tickformat=",.0f")
+        fig_inv.update_yaxes(title="Valor ($ COP)", tickprefix="$ ", tickformat=",.0f", gridcolor="rgba(51, 65, 85, 0.35)", linecolor="rgba(51, 65, 85, 0.6)", color="#94A3B8")
+        fig_inv.update_xaxes(gridcolor="rgba(51, 65, 85, 0.35)", linecolor="rgba(51, 65, 85, 0.6)", color="#94A3B8")
         st.plotly_chart(fig_inv, width="stretch", config=graficos.CONFIG_PLOTLY)
 
         # Veredicto y análisis de liquidez vs rentabilidad
@@ -453,19 +454,19 @@ elif caso_seleccionado_id == "ahorro_cuota_inicial_gradientes":
             meses_arr,
             cuota_equivalente,
             f"Cuota Equivalente: {pesos(cuota_equivalente)}",
-            "#1E293B",
+            "#38BDF8",
         )
         fig_aportes.update_layout(
-            title={"text": f"Evolución de aportes mensuales ({desc_incremento}) vs. Cuota Equivalente", "x": 0},
-            font={"family": "Source Sans 3, sans-serif"},
-            paper_bgcolor="#FFFFFF",
-            plot_bgcolor="#FFFFFF",
+            title={"text": f"<b>Evolución de aportes mensuales ({desc_incremento}) vs. Cuota Equivalente</b>", "x": 0.01, "font": {"color": "#FFFFFF", "size": 15}},
+            font={"family": "Inter, sans-serif", "color": "#94A3B8"},
+            paper_bgcolor="rgba(15, 23, 42, 0.4)",
+            plot_bgcolor="rgba(15, 23, 42, 0.4)",
             hovermode="x unified",
-            legend={"orientation": "h", "y": 1.05},
-            margin={"l": 10, "r": 10, "t": 60, "b": 10},
+            legend={"orientation": "h", "y": 1.05, "font": {"color": "#CBD5E1"}},
+            margin={"l": 15, "r": 15, "t": 60, "b": 15},
         )
-        fig_aportes.update_yaxes(title="Aporte mensual ($ COP)", tickprefix="$ ", tickformat=",.0f")
-        fig_aportes.update_xaxes(title="Mes de ahorro")
+        fig_aportes.update_yaxes(title="Aporte mensual ($ COP)", tickprefix="$ ", tickformat=",.0f", gridcolor="rgba(51, 65, 85, 0.35)", linecolor="rgba(51, 65, 85, 0.6)", color="#94A3B8")
+        fig_aportes.update_xaxes(title="Mes de ahorro", gridcolor="rgba(51, 65, 85, 0.35)", linecolor="rgba(51, 65, 85, 0.6)", color="#94A3B8")
         st.plotly_chart(fig_aportes, width="stretch", config=graficos.CONFIG_PLOTLY)
 
         # Gráfico 2: Evolución del saldo acumulado (Aportes vs Intereses)
@@ -487,16 +488,16 @@ elif caso_seleccionado_id == "ahorro_cuota_inicial_gradientes":
             )
         )
         fig_acum.update_layout(
-            title={"text": "Crecimiento del capital acumulado mes a mes", "x": 0},
-            font={"family": "Source Sans 3, sans-serif"},
-            paper_bgcolor="#FFFFFF",
-            plot_bgcolor="#FFFFFF",
+            title={"text": "<b>Crecimiento del capital acumulado mes a mes</b>", "x": 0.01, "font": {"color": "#FFFFFF", "size": 15}},
+            font={"family": "Inter, sans-serif", "color": "#94A3B8"},
+            paper_bgcolor="rgba(15, 23, 42, 0.4)",
+            plot_bgcolor="rgba(15, 23, 42, 0.4)",
             hovermode="x unified",
-            legend={"orientation": "h", "y": 1.05},
-            margin={"l": 10, "r": 10, "t": 60, "b": 10},
+            legend={"orientation": "h", "y": 1.05, "font": {"color": "#CBD5E1"}},
+            margin={"l": 15, "r": 15, "t": 60, "b": 15},
         )
-        fig_acum.update_yaxes(title="Saldo acumulado ($ COP)", tickprefix="$ ", tickformat=",.0f")
-        fig_acum.update_xaxes(title="Mes")
+        fig_acum.update_yaxes(title="Saldo acumulado ($ COP)", tickprefix="$ ", tickformat=",.0f", gridcolor="rgba(51, 65, 85, 0.35)", linecolor="rgba(51, 65, 85, 0.6)", color="#94A3B8")
+        fig_acum.update_xaxes(title="Mes", gridcolor="rgba(51, 65, 85, 0.35)", linecolor="rgba(51, 65, 85, 0.6)", color="#94A3B8")
         st.plotly_chart(fig_acum, width="stretch", config=graficos.CONFIG_PLOTLY)
 
         with estilos.tarjeta("grad_veredicto"):

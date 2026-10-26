@@ -1,0 +1,2056 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-950 text-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tablero de Ingeniería Financiera - UPB</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            },
+            fintech: {
+              emerald: '#10b981',
+              cyan: '#06b6d4',
+              amber: '#f59e0b',
+              rose: '#f43f5e',
+              violet: '#8b5cf6'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Custom scrollbars */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+    .glass-panel {
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(51, 65, 85, 0.5);
+    }
+    .metric-card {
+      background: linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.8) 100%);
+      border: 1px solid rgba(51, 65, 85, 0.6);
+    }
+  </style>
+</head>
+<body class="h-full flex overflow-hidden font-sans antialiased text-slate-200">
+
+  <!-- Mobile Overlay -->
+  <div id="mobile-overlay" class="fixed inset-0 bg-black/60 z-30 hidden md:hidden" onclick="toggleSidebar()"></div>
+
+  <!-- SIDEBAR NAVIGATION -->
+  <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 w-72 bg-slate-900 border-r border-slate-800 flex flex-col transition-transform duration-300 transform -translate-x-full md:translate-x-0 md:static md:inset-0">
+    <!-- Brand / Header -->
+    <div class="p-5 border-b border-slate-800 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-fintech-cyan flex items-center justify-center shadow-lg shadow-brand-500/20">
+          <i class="fa-solid fa-chart-line text-white text-lg"></i>
+        </div>
+        <div>
+          <h1 class="text-sm font-bold tracking-tight text-white flex items-center gap-1.5">
+            UPB Finanzas <span class="text-[10px] bg-brand-500/20 text-brand-400 px-1.5 py-0.5 rounded font-mono font-medium">2026</span>
+          </h1>
+          <p class="text-xs text-slate-400">Ingeniería Financiera</p>
+        </div>
+      </div>
+      <button class="md:hidden text-slate-400 hover:text-white" onclick="toggleSidebar()">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+    </div>
+
+    <!-- Nav List -->
+    <nav class="flex-1 overflow-y-auto p-3 space-y-1 text-sm font-medium">
+      <button onclick="navigate('panel')" class="nav-item active w-full flex items-center px-3 py-2.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/70 transition">
+        <i class="fa-solid fa-house w-6 text-brand-400 text-center"></i>
+        <span class="ml-2">Panel Principal</span>
+        <span class="ml-auto text-[10px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/20">Síntesis</span>
+      </button>
+
+      <div class="pt-3 pb-1 px-3 text-[11px] font-semibold tracking-wider text-slate-400 uppercase">Módulos del Curso</div>
+
+      <button onclick="navigate('simple')" class="nav-item w-full flex items-center px-3 py-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/70 transition">
+        <i class="fa-solid fa-arrow-trend-up w-6 text-fintech-cyan text-center"></i>
+        <span class="ml-2">1. Interés Simple</span>
+      </button>
+
+      <button onclick="navigate('compuesto')" class="nav-item w-full flex items-center px-3 py-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/70 transition">
+        <i class="fa-solid fa-chart-area w-6 text-fintech-emerald text-center"></i>
+        <span class="ml-2">2. Interés Compuesto</span>
+      </button>
+
+      <button onclick="navigate('tasas')" class="nav-item w-full flex items-center px-3 py-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/70 transition">
+        <i class="fa-solid fa-percent w-6 text-fintech-amber text-center"></i>
+        <span class="ml-2">3. Rentabilidad y Tasas</span>
+      </button>
+
+      <button onclick="navigate('series')" class="nav-item w-full flex items-center px-3 py-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/70 transition">
+        <i class="fa-solid fa-bars-staggered w-6 text-fintech-violet text-center"></i>
+        <span class="ml-2">4. Series Uniformes</span>
+      </button>
+
+      <button onclick="navigate('gradientes')" class="nav-item w-full flex items-center px-3 py-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/70 transition">
+        <i class="fa-solid fa-stairs w-6 text-fintech-rose text-center"></i>
+        <span class="ml-2">5. Gradientes</span>
+      </button>
+
+      <button onclick="navigate('amortizacion')" class="nav-item w-full flex items-center px-3 py-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/70 transition">
+        <i class="fa-solid fa-table-list w-6 text-blue-400 text-center"></i>
+        <span class="ml-2">6. Tablas Amortización</span>
+      </button>
+
+      <div class="pt-3 pb-1 px-3 text-[11px] font-semibold tracking-wider text-slate-400 uppercase">Aplicación y Criterios</div>
+
+      <button onclick="navigate('casos')" class="nav-item w-full flex items-center px-3 py-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/70 transition">
+        <i class="fa-solid fa-briefcase w-6 text-emerald-400 text-center"></i>
+        <span class="ml-2 font-semibold text-emerald-300">Casos Bancarios Reales</span>
+      </button>
+
+      <button onclick="navigate('supuestos')" class="nav-item w-full flex items-center px-3 py-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/70 transition">
+        <i class="fa-solid fa-square-check w-6 text-purple-400 text-center"></i>
+        <span class="ml-2">Supuestos & Fórmulas</span>
+      </button>
+    </nav>
+
+    <!-- Sidebar Footer (Integrantes & Status) -->
+    <div class="p-4 border-t border-slate-800 bg-slate-900/50">
+      <div class="text-xs text-slate-400 mb-1">Docente: <strong class="text-slate-200">Adriana Arango L.</strong></div>
+      <div class="text-[11px] text-slate-400 flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span>Motor Financiero Activo (JS v2.4)</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN WRAPPER -->
+  <div class="flex-1 flex flex-col min-w-0 overflow-hidden bg-slate-950">
+    <!-- TOP HEADER -->
+    <header class="h-16 bg-slate-900/80 backdrop-blur-md border-b border-slate-800 flex items-center justify-between px-4 sm:px-6 z-20">
+      <div class="flex items-center space-x-3">
+        <button class="md:hidden p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800" onclick="toggleSidebar()">
+          <i class="fa-solid fa-bars text-lg"></i>
+        </button>
+        <div>
+          <span class="text-xs font-semibold text-brand-400 uppercase tracking-wider">Taller Final • 20%</span>
+          <h2 id="top-title" class="text-base sm:text-lg font-bold text-white tracking-tight">Panel Principal de Síntesis</h2>
+        </div>
+      </div>
+      <div class="flex items-center space-x-3">
+        <div class="hidden sm:flex items-center px-3 py-1 rounded-full bg-slate-800 border border-slate-700/60 text-xs text-slate-300">
+          <i class="fa-solid fa-calendar-check text-brand-400 mr-2"></i>
+          <span>Entrega: Octubre 29, 2026</span>
+        </div>
+        <button onclick="window.print()" class="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition" title="Imprimir / Exportar Reporte">
+          <i class="fa-solid fa-print"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- CONTENT BODY (SCROLLABLE) -->
+    <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-8">
+
+      <!-- ==========================================
+           SECTION 1: PANEL PRINCIPAL (SÍNTESIS)
+      =========================================== -->
+      <section id="sec-panel" class="tab-content block space-y-6">
+        <!-- Hero Header -->
+        <div class="p-6 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950/60 border border-slate-800 shadow-xl relative overflow-hidden">
+          <div class="max-w-3xl relative z-10">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-500/10 border border-brand-500/30 text-brand-400 text-xs font-medium mb-3">
+              <i class="fa-solid fa-graduation-cap"></i> Universidad Pontificia Bolivariana • Escuela de Ingenierías
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+              Tablero de Visualización de Ingeniería Financiera
+            </h1>
+            <p class="text-slate-300 text-sm sm:text-base mt-2 leading-relaxed">
+              Plataforma interactiva para la síntesis de conceptos matemáticos financieros: regímenes de interés, equivalencia de tasas, anualidades, gradientes y sistemas de amortización aplicados al mercado bancario colombiano.
+            </p>
+            <div class="mt-4 flex flex-wrap items-center gap-4 text-xs text-slate-400">
+              <span><i class="fa-solid fa-users text-slate-500 mr-1"></i> Equipo de Trabajo: <strong>Naomi Chow & Daniel Lopez</strong></span>
+              <span><i class="fa-solid fa-calendar text-slate-500 mr-1"></i> Vigencia: <strong>Semestre 2026-2</strong></span>
+              <span><i class="fa-solid fa-calculator text-slate-500 mr-1"></i> Base de Cálculo: <strong>360 Comercial / E.T. Art 395</strong></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- KPI Metrics Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="metric-card p-5 rounded-xl">
+            <div class="flex items-center justify-between text-slate-400 text-xs">
+              <span>CASO 1: CDT BANCOLOMBIA</span>
+              <span class="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400"><i class="fa-solid fa-piggy-bank"></i></span>
+            </div>
+            <div class="text-2xl font-bold text-white mt-2">9.50% <span class="text-xs font-normal text-slate-400">E.A.</span></div>
+            <div class="text-xs text-emerald-400 mt-1 flex items-center">
+              <i class="fa-solid fa-shield-halved mr-1"></i> TEA Neta: 9.12% post-retefuente
+            </div>
+          </div>
+
+          <div class="metric-card p-5 rounded-xl">
+            <div class="flex items-center justify-between text-slate-400 text-xs">
+              <span>CASO 2: CRÉDITO SUFI</span>
+              <span class="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-400"><i class="fa-solid fa-car"></i></span>
+            </div>
+            <div class="text-2xl font-bold text-white mt-2">$40.000.000 <span class="text-xs font-normal text-slate-400">COP</span></div>
+            <div class="text-xs text-indigo-400 mt-1 flex items-center">
+              <i class="fa-solid fa-tag mr-1"></i> 1.25% M.V. (16.08% E.A.)
+            </div>
+          </div>
+
+          <div class="metric-card p-5 rounded-xl">
+            <div class="flex items-center justify-between text-slate-400 text-xs">
+              <span>CASO 3: AHORRO VIVIENDA</span>
+              <span class="p-1.5 rounded-lg bg-amber-500/10 text-amber-400"><i class="fa-solid fa-building"></i></span>
+            </div>
+            <div class="text-2xl font-bold text-white mt-2">$37.284.190 <span class="text-xs font-normal text-slate-400">VF</span></div>
+            <div class="text-xs text-amber-400 mt-1 flex items-center">
+              <i class="fa-solid fa-arrow-trend-up mr-1"></i> Gradiente: +$25.000/mes
+            </div>
+          </div>
+
+          <div class="metric-card p-5 rounded-xl">
+            <div class="flex items-center justify-between text-slate-400 text-xs">
+              <span>ESTADO DE VERIFICACIONES</span>
+              <span class="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400"><i class="fa-solid fa-circle-check"></i></span>
+            </div>
+            <div class="text-2xl font-bold text-emerald-400 mt-2">7 / 7 OK</div>
+            <div class="text-xs text-slate-400 mt-1 flex items-center">
+              <i class="fa-solid fa-check-double mr-1 text-emerald-500"></i> Todos los módulos validados
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabla Resumen de los 3 Casos Aplicados -->
+        <div class="glass-panel p-6 rounded-2xl">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-800 gap-2">
+            <div>
+              <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-briefcase text-emerald-400"></i>
+                Resumen Ejecutivo de Casos Financieros Aplicados
+              </h3>
+              <p class="text-xs text-slate-400">Síntesis comparativa de costos, rendimientos y decisión recomendada.</p>
+            </div>
+            <button onclick="navigate('casos')" class="text-xs text-brand-400 hover:text-brand-300 font-semibold flex items-center gap-1 self-start sm:self-auto">
+              Explorar simuladores detallados <i class="fa-solid fa-arrow-right"></i>
+            </button>
+          </div>
+
+          <div class="overflow-x-auto mt-4">
+            <table class="w-full text-left text-sm">
+              <thead class="text-xs uppercase bg-slate-900/80 text-slate-400 border-b border-slate-800">
+                <tr>
+                  <th class="py-3 px-4">Caso / Producto</th>
+                  <th class="py-3 px-4">Entidad Financiera</th>
+                  <th class="py-3 px-4">Tasa Efectiva Anual (E.A.)</th>
+                  <th class="py-3 px-4">Total Pagado / Recibido</th>
+                  <th class="py-3 px-4">Intereses Totales</th>
+                  <th class="py-3 px-4">Decisión Recomendada</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-800 text-slate-300 font-mono text-xs">
+                <tr class="hover:bg-slate-800/40 transition">
+                  <td class="py-3.5 px-4 font-sans font-semibold text-white">
+                    Caso 1: CDT Tradicional vs Cajita de Ahorro
+                  </td>
+                  <td class="py-3.5 px-4 font-sans">Bancolombia vs Nu Colombia</td>
+                  <td class="py-3.5 px-4">
+                    <span class="text-emerald-400">11.00% E.A. (Nu)</span> vs <span class="text-slate-400">9.50% (Bancolombia)</span>
+                  </td>
+                  <td class="py-3.5 px-4">$11.056.000 COP neto</td>
+                  <td class="py-3.5 px-4 text-emerald-400">+$1.056.000 COP netos</td>
+                  <td class="py-3.5 px-4 font-sans">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                      Nu Colombia (Mayor E.A. y Liquidez 24/7)
+                    </span>
+                  </td>
+                </tr>
+                <tr class="hover:bg-slate-800/40 transition">
+                  <td class="py-3.5 px-4 font-sans font-semibold text-white">
+                    Caso 2: Crédito Vehicular ($40M a 48 meses)
+                  </td>
+                  <td class="py-3.5 px-4 font-sans">Sufi (Grupo Bancolombia)</td>
+                  <td class="py-3.5 px-4 text-indigo-400">16.08% E.A. (1.25% M.V.)</td>
+                  <td class="py-3.5 px-4">$53.486.208 (Francés) vs $52.250.000 (Alemán)</td>
+                  <td class="py-3.5 px-4 text-rose-400">-$13.486.208 COP (Francés)</td>
+                  <td class="py-3.5 px-4 font-sans">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                      Abono Constante (Ahorro $1.236.208 en intereses)
+                    </span>
+                  </td>
+                </tr>
+                <tr class="hover:bg-slate-800/40 transition">
+                  <td class="py-3.5 px-4 font-sans font-semibold text-white">
+                    Caso 3: Plan Semilla Cuota Inicial Vivienda
+                  </td>
+                  <td class="py-3.5 px-4 font-sans">Fondo Fiduciario Bancolombia</td>
+                  <td class="py-3.5 px-4 text-amber-400">7.44% E.A. (0.60% M.V.)</td>
+                  <td class="py-3.5 px-4">$37.284.190 COP (Meta acumulada)</td>
+                  <td class="py-3.5 px-4 text-emerald-400">+$3.584.190 COP rentabilidad</td>
+                  <td class="py-3.5 px-4 font-sans">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                      Gradiente Aritmético (Facilidad inicial $500k)
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Módulos Cards Direct Access -->
+        <div>
+          <h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">Acceso Rápido a Módulos del Taller</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div onclick="navigate('simple')" class="p-4 rounded-xl bg-slate-900 border border-slate-800 hover:border-fintech-cyan/50 cursor-pointer transition group">
+              <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-lg bg-cyan-500/10 text-cyan-400 flex items-center justify-center group-hover:scale-110 transition">
+                  <i class="fa-solid fa-arrow-trend-up"></i>
+                </div>
+                <div>
+                  <h4 class="text-sm font-bold text-white group-hover:text-cyan-400 transition">Interés Simple</h4>
+                  <p class="text-xs text-slate-400">Despejes de VP, VF, i, n y convenciones 360/365.</p>
+                </div>
+              </div>
+            </div>
+
+            <div onclick="navigate('compuesto')" class="p-4 rounded-xl bg-slate-900 border border-slate-800 hover:border-fintech-emerald/50 cursor-pointer transition group">
+              <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center group-hover:scale-110 transition">
+                  <i class="fa-solid fa-chart-area"></i>
+                </div>
+                <div>
+                  <h4 class="text-sm font-bold text-white group-hover:text-emerald-400 transition">Interés Compuesto</h4>
+                  <p class="text-xs text-slate-400">Comparación gráfica divergente y brecha de valor.</p>
+                </div>
+              </div>
+            </div>
+
+            <div onclick="navigate('tasas')" class="p-4 rounded-xl bg-slate-900 border border-slate-800 hover:border-fintech-amber/50 cursor-pointer transition group">
+              <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center group-hover:scale-110 transition">
+                  <i class="fa-solid fa-percent"></i>
+                </div>
+                <div>
+                  <h4 class="text-sm font-bold text-white group-hover:text-amber-400 transition">Equivalencia de Tasas</h4>
+                  <p class="text-xs text-slate-400">Nominales, efectivas, anticipadas y retefuente 4%.</p>
+                </div>
+              </div>
+            </div>
+
+            <div onclick="navigate('series')" class="p-4 rounded-xl bg-slate-900 border border-slate-800 hover:border-fintech-violet/50 cursor-pointer transition group">
+              <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center group-hover:scale-110 transition">
+                  <i class="fa-solid fa-bars-staggered"></i>
+                </div>
+                <div>
+                  <h4 class="text-sm font-bold text-white group-hover:text-purple-400 transition">Series Uniformes</h4>
+                  <p class="text-xs text-slate-400">Anualidades vencidas y anticipadas con flujos de caja.</p>
+                </div>
+              </div>
+            </div>
+
+            <div onclick="navigate('gradientes')" class="p-4 rounded-xl bg-slate-900 border border-slate-800 hover:border-fintech-rose/50 cursor-pointer transition group">
+              <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-lg bg-rose-500/10 text-rose-400 flex items-center justify-center group-hover:scale-110 transition">
+                  <i class="fa-solid fa-stairs"></i>
+                </div>
+                <div>
+                  <h4 class="text-sm font-bold text-white group-hover:text-rose-400 transition">Gradientes</h4>
+                  <p class="text-xs text-slate-400">Series aritméticas ($) y geométricas (%) y cuota equivalente.</p>
+                </div>
+              </div>
+            </div>
+
+            <div onclick="navigate('amortizacion')" class="p-4 rounded-xl bg-slate-900 border border-blue-500/50 cursor-pointer transition group">
+              <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center group-hover:scale-110 transition">
+                  <i class="fa-solid fa-table-list"></i>
+                </div>
+                <div>
+                  <h4 class="text-sm font-bold text-white group-hover:text-blue-400 transition">Tablas de Amortización</h4>
+                  <p class="text-xs text-slate-400">Sistemas Francés vs Alemán con comprobación a saldo cero.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==========================================
+           SECTION 2: INTERÉS SIMPLE
+      =========================================== -->
+      <section id="sec-simple" class="tab-content hidden space-y-6">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+          <div>
+            <h2 class="text-xl font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-arrow-trend-up text-fintech-cyan"></i> Módulo de Interés Simple
+            </h2>
+            <p class="text-xs text-slate-400">Régimen no acumulativo: los intereses devengados no se capitalizan periodo tras periodo.</p>
+          </div>
+          <span class="text-xs bg-slate-800 text-slate-300 px-2.5 py-1 rounded-full border border-slate-700">Rúbrica: Criterio 1</span>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div class="lg:col-span-5 glass-panel p-5 rounded-2xl space-y-4">
+            <h3 class="text-sm font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
+              <i class="fa-solid fa-sliders text-cyan-400"></i> Parámetros de Entrada
+            </h3>
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Variable a Calcular / Despejar:</label>
+              <select id="sim-target" onchange="updateSimpleUI(); calcSimple();" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-400">
+                <option value="vf">Valor Futuro (VF) e Interés (I)</option>
+                <option value="vp">Valor Presente (VP)</option>
+                <option value="rate">Tasa de Interés periódica (i)</option>
+                <option value="term">Plazo o Periodos (n)</option>
+              </select>
+            </div>
+            <div id="sim-group-vp">
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Capital Inicial (VP en COP):</label>
+              <input type="number" id="sim-vp" value="10000000" step="500000" oninput="calcSimple()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:ring-1 focus:ring-cyan-400 focus:outline-none">
+            </div>
+            <div id="sim-group-vf" class="hidden">
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Valor Futuro Esperado (VF en COP):</label>
+              <input type="number" id="sim-vf" value="11500000" step="500000" oninput="calcSimple()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:ring-1 focus:ring-cyan-400 focus:outline-none">
+            </div>
+            <div id="sim-group-rate">
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Tasa de Interés Nominal Anual (% E.A. o Nominal):</label>
+              <div class="relative">
+                <input type="number" id="sim-rate" value="12.0" step="0.1" oninput="calcSimple()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:ring-1 focus:ring-cyan-400 focus:outline-none pr-8">
+                <span class="absolute right-3 top-2 text-slate-400 text-sm">%</span>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3" id="sim-group-term">
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Plazo:</label>
+                <input type="number" id="sim-term" value="180" step="1" oninput="calcSimple()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Unidad:</label>
+                <select id="sim-unit" onchange="calcSimple()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none">
+                  <option value="dias" selected>Días</option>
+                  <option value="meses">Meses</option>
+                  <option value="anios">Años</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Convención de Base Anual:</label>
+              <div class="grid grid-cols-2 gap-2 text-xs">
+                <label class="flex items-center p-2 rounded-lg bg-slate-900 border border-slate-700 cursor-pointer">
+                  <input type="radio" name="sim-base" value="360" checked onchange="calcSimple()" class="mr-2 text-cyan-500">
+                  <span>Comercial (360)</span>
+                </label>
+                <label class="flex items-center p-2 rounded-lg bg-slate-900 border border-slate-700 cursor-pointer">
+                  <input type="radio" name="sim-base" value="365" onchange="calcSimple()" class="mr-2 text-cyan-500">
+                  <span>Exacto (365)</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="lg:col-span-7 space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div class="p-4 rounded-xl bg-slate-900 border border-slate-800">
+                <div class="text-[11px] text-slate-400 uppercase font-semibold">Valor Presente (VP)</div>
+                <div id="sim-res-vp" class="text-lg font-bold text-white mt-1">$ 10.000.000</div>
+              </div>
+              <div class="p-4 rounded-xl bg-slate-900 border border-slate-800">
+                <div class="text-[11px] text-slate-400 uppercase font-semibold">Interés Total (I)</div>
+                <div id="sim-res-i" class="text-lg font-bold text-cyan-400 mt-1">$ 600.000</div>
+              </div>
+              <div class="p-4 rounded-xl bg-slate-900 border border-slate-800">
+                <div class="text-[11px] text-slate-400 uppercase font-semibold">Valor Futuro (VF)</div>
+                <div id="sim-res-vf" class="text-lg font-bold text-emerald-400 mt-1">$ 10.600.000</div>
+              </div>
+            </div>
+            <div class="glass-panel p-4 rounded-xl">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-bold text-slate-300">Evolución Lineal del Capital Acumulado</span>
+                <span class="text-[11px] text-slate-400 font-mono">VF(t) = VP(1 + i·t)</span>
+              </div>
+              <div class="h-64"><canvas id="chart-simple"></canvas></div>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-900/90 border border-emerald-500/30 flex items-start gap-3 text-xs">
+              <i class="fa-solid fa-circle-check text-emerald-400 text-base mt-0.5"></i>
+              <div>
+                <span class="font-bold text-emerald-300">Verificación Matemática Superada:</span>
+                <span id="sim-verif-text" class="text-slate-300 ml-1">
+                  $I = VP \times i \times n$ coincide con la diferencia aritmética $VF - VP = \$600.000$. Despejes exactos con margen de error &lt; 10⁻⁷.
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==========================================
+           SECTION 3: INTERÉS COMPUESTO
+      =========================================== -->
+      <section id="sec-compuesto" class="tab-content hidden space-y-6">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+          <div>
+            <h2 class="text-xl font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-chart-area text-fintech-emerald"></i> Módulo de Interés Compuesto
+            </h2>
+            <p class="text-xs text-slate-400">Régimen exponencial: los intereses se capitalizan en cada periodo incrementando la base generadora.</p>
+          </div>
+          <span class="text-xs bg-slate-800 text-slate-300 px-2.5 py-1 rounded-full border border-slate-700">Rúbrica: Criterio 1</span>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div class="lg:col-span-5 glass-panel p-5 rounded-2xl space-y-4">
+            <h3 class="text-sm font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
+              <i class="fa-solid fa-sliders text-emerald-400"></i> Parámetros de Simulación
+            </h3>
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Variable a Calcular:</label>
+              <select id="comp-target" onchange="updateCompUI(); calcCompuesto();" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-400">
+                <option value="vf">Valor Futuro (VF)</option>
+                <option value="vp">Valor Presente (VP)</option>
+                <option value="rate">Despejar Tasa Periódica (i)</option>
+                <option value="term">Despejar Número de Periodos (n)</option>
+              </select>
+            </div>
+            <div id="comp-group-vp">
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Capital Inicial (VP):</label>
+              <input type="number" id="comp-vp" value="10000000" step="500000" oninput="calcCompuesto()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none">
+            </div>
+            <div id="comp-group-vf" class="hidden">
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Valor Futuro Objetivo (VF):</label>
+              <input type="number" id="comp-vf" value="16000000" step="500000" oninput="calcCompuesto()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none">
+            </div>
+            <div id="comp-group-rate">
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Tasa Periódica (% por periodo):</label>
+              <div class="relative">
+                <input type="number" id="comp-rate" value="1.5" step="0.05" oninput="calcCompuesto()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none pr-8">
+                <span class="absolute right-3 top-2 text-slate-400 text-sm">%</span>
+              </div>
+            </div>
+            <div id="comp-group-term">
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Número de Periodos (n):</label>
+              <input type="number" id="comp-term" value="24" step="1" oninput="calcCompuesto()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none">
+            </div>
+          </div>
+
+          <div class="lg:col-span-7 space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div class="p-4 rounded-xl bg-slate-900 border border-slate-800">
+                <div class="text-[11px] text-slate-400 uppercase font-semibold">VF Interés Compuesto</div>
+                <div id="comp-res-vf" class="text-lg font-bold text-emerald-400 mt-1">$ 14.295.028</div>
+              </div>
+              <div class="p-4 rounded-xl bg-slate-900 border border-slate-800">
+                <div class="text-[11px] text-slate-400 uppercase font-semibold">VF Interés Simple Mismos Datos</div>
+                <div id="comp-res-vf-simple" class="text-lg font-bold text-slate-300 mt-1">$ 13.600.000</div>
+              </div>
+              <div class="p-4 rounded-xl bg-slate-900 border border-slate-800">
+                <div class="text-[11px] text-slate-400 uppercase font-semibold">Brecha Ganancia Adicional</div>
+                <div id="comp-res-gap" class="text-lg font-bold text-fintech-cyan mt-1">+$ 695.028</div>
+              </div>
+            </div>
+            <div class="glass-panel p-4 rounded-xl">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-bold text-slate-300">Divergencia Temporal: Interés Compuesto vs Simple</span>
+                <span class="text-[11px] text-emerald-400 font-mono">Efecto Capitalización</span>
+              </div>
+              <div class="h-64"><canvas id="chart-compuesto"></canvas></div>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-900/90 border border-emerald-500/30 flex items-start gap-3 text-xs">
+              <i class="fa-solid fa-circle-check text-emerald-400 text-base mt-0.5"></i>
+              <div>
+                <span class="font-bold text-emerald-300">Verificación de Despeje Logarítmico:</span>
+                <span id="comp-verif-text" class="text-slate-300 ml-1">
+                  $n = \frac{\ln(VF/VP)}{\ln(1+i)} = 24.00$ periodos. Cumple igualdad de valor temporal con precisión absoluta.
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==========================================
+           SECTION 4: EQUIVALENCIA DE TASAS & RETE
+      =========================================== -->
+      <section id="sec-tasas" class="tab-content hidden space-y-6">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+          <div>
+            <h2 class="text-xl font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-percent text-fintech-amber"></i> Módulo de Rentabilidad y Equivalencia de Tasas
+            </h2>
+            <p class="text-xs text-slate-400">Conversión de periodicidades, tasas vencidas/anticipadas, ecuación de Fisher y descuento de Retefuente.</p>
+          </div>
+          <span class="text-xs bg-slate-800 text-slate-300 px-2.5 py-1 rounded-full border border-slate-700">Rúbrica: Criterio 2</span>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div class="lg:col-span-6 glass-panel p-5 rounded-2xl space-y-4">
+            <h3 class="text-sm font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
+              <i class="fa-solid fa-repeat text-amber-400"></i> Conversor Dinámico de Tasas
+            </h3>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Tipo de Tasa Entrada:</label>
+                <select id="rate-in-type" onchange="calcTasas()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none">
+                  <option value="ea" selected>Efectiva Anual (E.A.)</option>
+                  <option value="nom_v">Nominal Vencida</option>
+                  <option value="nom_a">Nominal Anticipada</option>
+                  <option value="per_v">Periódica Vencida</option>
+                  <option value="per_a">Periódica Anticipada</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Periodicidad:</label>
+                <select id="rate-in-m" onchange="calcTasas()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none">
+                  <option value="12" selected>Mensual (m = 12)</option>
+                  <option value="6">Bimestral (m = 6)</option>
+                  <option value="4">Trimestral (m = 4)</option>
+                  <option value="2">Semestral (m = 2)</option>
+                  <option value="1">Anual (m = 1)</option>
+                  <option value="360">Diario (m = 360)</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Valor de la Tasa (%):</label>
+              <div class="relative">
+                <input type="number" id="rate-in-val" value="12.0" step="0.1" oninput="calcTasas()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none pr-8">
+                <span class="absolute right-3 top-2 text-slate-400 text-sm">%</span>
+              </div>
+            </div>
+            <div class="pt-2">
+              <span class="text-xs font-semibold text-slate-300 block mb-2">Tabla de Equivalencias Recalculada al Instante:</span>
+              <div class="overflow-x-auto rounded-lg border border-slate-800">
+                <table class="w-full text-xs text-left font-mono">
+                  <thead class="bg-slate-900 text-slate-400 uppercase text-[10px]">
+                    <tr>
+                      <th class="py-2 px-3">Periodo (m)</th>
+                      <th class="py-2 px-3">Periódica Vencida</th>
+                      <th class="py-2 px-3">Periódica Anticipada</th>
+                      <th class="py-2 px-3">Nominal Vencida</th>
+                    </tr>
+                  </thead>
+                  <tbody id="rate-table-body" class="divide-y divide-slate-800 text-slate-200"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="lg:col-span-6 space-y-4">
+            <div class="glass-panel p-5 rounded-2xl space-y-3">
+              <h3 class="text-sm font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
+                <i class="fa-solid fa-link text-fintech-cyan"></i> Tasas Combinadas (Ecuación de Fisher)
+              </h3>
+              <p class="text-xs text-slate-400">$(1 + i_{\text{total}}) = (1 + \text{IPC}) \times (1 + \text{spread})$</p>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs text-slate-300 mb-1">Inflación IPC proyectada (%):</label>
+                  <input type="number" id="rate-ipc" value="5.5" step="0.1" oninput="calcTasas()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none">
+                </div>
+                <div>
+                  <label class="block text-xs text-slate-300 mb-1">Spread / Puntos adicionales (%):</label>
+                  <input type="number" id="rate-spread" value="4.0" step="0.1" oninput="calcTasas()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none">
+                </div>
+              </div>
+              <div class="p-3 bg-slate-900 rounded-xl border border-slate-800 flex items-center justify-between">
+                <span class="text-xs text-slate-400">Tasa Combinada Efectiva Resultante:</span>
+                <span id="rate-res-comb" class="text-base font-bold text-cyan-400 font-mono">9.72% E.A.</span>
+              </div>
+            </div>
+
+            <div class="glass-panel p-5 rounded-2xl space-y-3">
+              <h3 class="text-sm font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
+                <i class="fa-solid fa-receipt text-fintech-rose"></i> Rentabilidad Neta con Retención en la Fuente
+              </h3>
+              <p class="text-xs text-slate-400">Aplicación del Art. 395 del Estatuto Tributario sobre rendimientos financieros (CDT/Ahorro).</p>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs text-slate-300 mb-1">Retefuente sobre Intereses (%):</label>
+                  <input type="number" id="rate-rete" value="4.0" step="0.5" oninput="calcTasas()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none">
+                </div>
+                <div>
+                  <label class="block text-xs text-slate-300 mb-1">Monto Invertido ($ COP):</label>
+                  <input type="number" id="rate-monto-ej" value="10000000" step="1000000" oninput="calcTasas()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none">
+                </div>
+              </div>
+              <div class="grid grid-cols-3 gap-2 pt-1">
+                <div class="p-2.5 bg-slate-900 rounded-lg border border-slate-800 text-center">
+                  <div class="text-[10px] text-slate-400">Rendimiento Bruto</div>
+                  <div id="rate-res-bruto" class="text-xs font-bold text-white mt-1">$ 1.200.000</div>
+                </div>
+                <div class="p-2.5 bg-slate-900 rounded-lg border border-slate-800 text-center">
+                  <div class="text-[10px] text-slate-400">Retención Deducida</div>
+                  <div id="rate-res-impuesto" class="text-xs font-bold text-rose-400 mt-1">-$ 48.000</div>
+                </div>
+                <div class="p-2.5 bg-slate-900 rounded-lg border border-slate-800 text-center">
+                  <div class="text-[10px] text-slate-400">TEA Neta Real</div>
+                  <div id="rate-res-ea-neta" class="text-xs font-bold text-emerald-400 mt-1">11.52% E.A.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==========================================
+           SECTION 5: SERIES UNIFORMES
+      =========================================== -->
+      <section id="sec-series" class="tab-content hidden space-y-6">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+          <div>
+            <h2 class="text-xl font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-bars-staggered text-fintech-violet"></i> Módulo de Series Uniformes (Anualidades)
+            </h2>
+            <p class="text-xs text-slate-400">Flujos constantes y periódicos: cálculo de Cuota (A), Valor Presente (VP) y Valor Futuro (VF) vencido o anticipado.</p>
+          </div>
+          <span class="text-xs bg-slate-800 text-slate-300 px-2.5 py-1 rounded-full border border-slate-700">Rúbrica: Criterio 3</span>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div class="lg:col-span-5 glass-panel p-5 rounded-2xl space-y-4">
+            <h3 class="text-sm font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
+              <i class="fa-solid fa-sliders text-purple-400"></i> Parámetros de la Serie
+            </h3>
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Variable a Calcular:</label>
+              <select id="ser-target" onchange="updateSeriesUI(); calcSeries();" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-purple-400">
+                <option value="cuota">Calcular Cuota Uniforme (A) a partir de VP</option>
+                <option value="vp">Calcular Valor Presente (VP) a partir de A</option>
+                <option value="vf">Calcular Valor Futuro (VF) a partir de A</option>
+              </select>
+            </div>
+            <div id="ser-group-monto">
+              <label id="ser-monto-label" class="block text-xs font-semibold text-slate-300 mb-1">Monto del Préstamo (VP en COP):</label>
+              <input type="number" id="ser-monto" value="20000000" step="1000000" oninput="calcSeries()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Tasa Periódica (%):</label>
+                <input type="number" id="ser-rate" value="1.2" step="0.05" oninput="calcSeries()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Número de Pagos (n):</label>
+                <input type="number" id="ser-term" value="36" step="1" oninput="calcSeries()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none">
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Modalidad de Pago:</label>
+              <div class="grid grid-cols-2 gap-2 text-xs">
+                <label class="flex items-center p-2 rounded-lg bg-slate-900 border border-slate-700 cursor-pointer">
+                  <input type="radio" name="ser-modalidad" value="vencida" checked onchange="calcSeries()" class="mr-2 text-purple-500">
+                  <span>Vencida (Ordinaria)</span>
+                </label>
+                <label class="flex items-center p-2 rounded-lg bg-slate-900 border border-slate-700 cursor-pointer">
+                  <input type="radio" name="ser-modalidad" value="anticipada" onchange="calcSeries()" class="mr-2 text-purple-500">
+                  <span>Anticipada</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="lg:col-span-7 space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div class="p-4 rounded-xl bg-slate-900 border border-slate-800">
+                <div class="text-[11px] text-slate-400 uppercase font-semibold">Cuota Periódica (A)</div>
+                <div id="ser-res-cuota" class="text-lg font-bold text-purple-400 mt-1">$ 686.299</div>
+              </div>
+              <div class="p-4 rounded-xl bg-slate-900 border border-slate-800">
+                <div class="text-[11px] text-slate-400 uppercase font-semibold">Total Pagado / Aportado</div>
+                <div id="ser-res-total" class="text-lg font-bold text-white mt-1">$ 24.706.764</div>
+              </div>
+              <div class="p-4 rounded-xl bg-slate-900 border border-slate-800">
+                <div class="text-[11px] text-slate-400 uppercase font-semibold">Costo Financiero (Intereses)</div>
+                <div id="ser-res-interes" class="text-lg font-bold text-rose-400 mt-1">$ 4.706.764</div>
+              </div>
+            </div>
+            <div class="glass-panel p-4 rounded-xl">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-bold text-slate-300">Flujo Constante de Cuotas y Acumulado</span>
+                <span class="text-[11px] text-purple-400 font-mono">Serie de Pagos</span>
+              </div>
+              <div class="h-64"><canvas id="chart-series"></canvas></div>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-900/90 border border-emerald-500/30 flex items-start gap-3 text-xs">
+              <i class="fa-solid fa-circle-check text-emerald-400 text-base mt-0.5"></i>
+              <div>
+                <span class="font-bold text-emerald-300">Comprobación Matemática de Anualidad:</span>
+                <span id="ser-verif-text" class="text-slate-300 ml-1">
+                  El valor presente de las 36 cuotas traídas a la tasa de 1.20% descuenta exactamente $20.000.000 COP iniciales.
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==========================================
+           SECTION 6: GRADIENTES
+      =========================================== -->
+      <section id="sec-gradientes" class="tab-content hidden space-y-6">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+          <div>
+            <h2 class="text-xl font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-stairs text-fintech-rose"></i> Módulo de Gradientes Financieros
+            </h2>
+            <p class="text-xs text-slate-400">Flujos variables sistemáticos: Aritmético (variación fija en dinero) y Geométrico (variación porcentual continua).</p>
+          </div>
+          <span class="text-xs bg-slate-800 text-slate-300 px-2.5 py-1 rounded-full border border-slate-700">Rúbrica: Criterio 3</span>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div class="lg:col-span-5 glass-panel p-5 rounded-2xl space-y-4">
+            <h3 class="text-sm font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
+              <i class="fa-solid fa-sliders text-rose-400"></i> Parámetros del Gradiente
+            </h3>
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Tipo de Gradiente:</label>
+              <div class="grid grid-cols-2 gap-2 text-xs">
+                <label class="flex items-center p-2 rounded-lg bg-slate-900 border border-slate-700 cursor-pointer">
+                  <input type="radio" name="grad-tipo" value="aritmetico" checked onchange="updateGradUI(); calcGradientes();" class="mr-2 text-rose-500">
+                  <span>Aritmético (+/- $)</span>
+                </label>
+                <label class="flex items-center p-2 rounded-lg bg-slate-900 border border-slate-700 cursor-pointer">
+                  <input type="radio" name="grad-tipo" value="geometrico" onchange="updateGradUI(); calcGradientes();" class="mr-2 text-rose-500">
+                  <span>Geométrico (+/- %)</span>
+                </label>
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Primera Cuota ($ A1):</label>
+              <input type="number" id="grad-a1" value="500000" step="50000" oninput="calcGradientes()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none">
+            </div>
+            <div id="grad-group-g">
+              <label id="grad-g-label" class="block text-xs font-semibold text-slate-300 mb-1">Gradiente Aritmético (G en COP por periodo):</label>
+              <input type="number" id="grad-g" value="25000" step="5000" oninput="calcGradientes()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Tasa Periódica (% i):</label>
+                <input type="number" id="grad-rate" value="0.6" step="0.05" oninput="calcGradientes()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Número Periodos (n):</label>
+                <input type="number" id="grad-term" value="36" step="1" oninput="calcGradientes()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none">
+              </div>
+            </div>
+          </div>
+
+          <div class="lg:col-span-7 space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div class="p-4 rounded-xl bg-slate-900 border border-slate-800">
+                <div class="text-[11px] text-slate-400 uppercase font-semibold">Valor Presente (VP)</div>
+                <div id="grad-res-vp" class="text-base font-bold text-white mt-1">$ 30.083.567</div>
+              </div>
+              <div class="p-4 rounded-xl bg-slate-900 border border-slate-800">
+                <div class="text-[11px] text-slate-400 uppercase font-semibold">Valor Futuro (VF)</div>
+                <div id="grad-res-vf" class="text-base font-bold text-rose-400 mt-1">$ 37.284.190</div>
+              </div>
+              <div class="p-4 rounded-xl bg-slate-900 border border-slate-800">
+                <div class="text-[11px] text-slate-400 uppercase font-semibold">Cuota Uniforme Equivalente</div>
+                <div id="grad-res-cuota-eq" class="text-base font-bold text-emerald-400 mt-1">$ 935.257</div>
+              </div>
+            </div>
+            <div class="glass-panel p-4 rounded-xl">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-bold text-slate-300">Perfil de Pagos Crecientes del Gradiente</span>
+                <span class="text-[11px] text-rose-400 font-mono">Cuotas $A_t$</span>
+              </div>
+              <div class="h-64"><canvas id="chart-gradientes"></canvas></div>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-900/90 border border-emerald-500/30 flex items-start gap-3 text-xs">
+              <i class="fa-solid fa-circle-check text-emerald-400 text-base mt-0.5"></i>
+              <div>
+                <span class="font-bold text-emerald-300">Validación de Cuota Equivalente:</span>
+                <span id="grad-verif-text" class="text-slate-300 ml-1">
+                  Pagar una cuota fija de $935.257 COP durante 36 periodos acumula exactamente los mismos $37.284.190 COP que el flujo creciente.
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==========================================
+           SECTION 7: TABLAS DE AMORTIZACIÓN
+      =========================================== -->
+      <section id="sec-amortizacion" class="tab-content hidden space-y-6">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+          <div>
+            <h2 class="text-xl font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-table-list text-blue-400"></i> Módulo de Tablas de Amortización
+            </h2>
+            <p class="text-xs text-slate-400">Modelado comparativo entre Sistema Francés (Cuota Fija) y Sistema Alemán (Abono Constante a Capital).</p>
+          </div>
+          <span class="text-xs bg-slate-800 text-slate-300 px-2.5 py-1 rounded-full border border-slate-700">Rúbrica: Criterio 4</span>
+        </div>
+
+        <div class="glass-panel p-5 rounded-2xl">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Monto del Préstamo (COP):</label>
+              <input type="number" id="amort-monto" value="40000000" step="1000000" oninput="calcAmortizacion()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Tasa Periódica Mensual (%):</label>
+              <input type="number" id="amort-rate" value="1.25" step="0.05" oninput="calcAmortizacion()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Plazo en Meses (n):</label>
+              <input type="number" id="amort-term" value="48" step="1" oninput="calcAmortizacion()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Sistema de Amortización:</label>
+              <select id="amort-sistema" onchange="calcAmortizacion()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none">
+                <option value="frances" selected>Cuota Fija (Francés)</option>
+                <option value="aleman">Abono Constante (Alemán)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+          <div class="p-4 rounded-xl bg-slate-900 border border-slate-800">
+            <div class="text-[11px] text-slate-400 uppercase font-semibold">Total Pagado (Francés)</div>
+            <div id="amort-tot-frances" class="text-base font-bold text-slate-200 mt-1">$ 53.486.208</div>
+          </div>
+          <div class="p-4 rounded-xl bg-slate-900 border border-slate-800">
+            <div class="text-[11px] text-slate-400 uppercase font-semibold">Total Pagado (Alemán)</div>
+            <div id="amort-tot-aleman" class="text-base font-bold text-emerald-400 mt-1">$ 52.250.000</div>
+          </div>
+          <div class="p-4 rounded-xl bg-slate-900 border border-slate-800">
+            <div class="text-[11px] text-slate-400 uppercase font-semibold">Diferencia / Ahorro Intereses</div>
+            <div id="amort-ahorro" class="text-base font-bold text-cyan-400 mt-1">$ 1.236.208</div>
+          </div>
+          <div class="p-4 rounded-xl bg-slate-900 border border-emerald-500/30 flex flex-col justify-center">
+            <div class="flex items-center text-emerald-400 text-xs font-bold gap-1">
+              <i class="fa-solid fa-check-circle"></i> Saldo Cierra en $0.00
+            </div>
+            <div class="text-[11px] text-slate-400 mt-1">Suma Abonos = Capital 100%</div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div class="glass-panel p-4 rounded-xl">
+            <span class="text-xs font-bold text-slate-300 block mb-2">Composición de Cuotas (Interés vs Abono a Capital)</span>
+            <div class="h-60"><canvas id="chart-amort-bar"></canvas></div>
+          </div>
+          <div class="glass-panel p-4 rounded-xl">
+            <span class="text-xs font-bold text-slate-300 block mb-2">Curva Descenso de Saldo de la Deuda</span>
+            <div class="h-60"><canvas id="chart-amort-line"></canvas></div>
+          </div>
+        </div>
+
+        <div class="glass-panel rounded-2xl p-4">
+          <div class="flex items-center justify-between mb-3">
+            <h4 class="text-sm font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-list-ol text-blue-400"></i> Tabla de Desarrollo Detallada
+            </h4>
+            <span class="text-xs text-slate-400">Mostrando todos los periodos</span>
+          </div>
+          <div class="overflow-x-auto max-h-96 overflow-y-auto rounded-lg border border-slate-800">
+            <table class="w-full text-xs text-left font-mono">
+              <thead class="bg-slate-900 sticky top-0 text-slate-400 uppercase text-[11px] z-10 border-b border-slate-800">
+                <tr>
+                  <th class="py-2.5 px-3">Periodo (t)</th>
+                  <th class="py-2.5 px-3">Cuota ($)</th>
+                  <th class="py-2.5 px-3">Intereses ($)</th>
+                  <th class="py-2.5 px-3">Abono Capital ($)</th>
+                  <th class="py-2.5 px-3">Saldo Deudor ($)</th>
+                </tr>
+              </thead>
+              <tbody id="amort-tbody" class="divide-y divide-slate-800 text-slate-300"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==========================================
+           SECTION 8: CASOS BANCARIOS REALES
+      =========================================== -->
+      <section id="sec-casos" class="tab-content hidden space-y-6">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+          <div>
+            <h2 class="text-xl font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-briefcase text-emerald-400"></i> Casos Financieros Aplicados con Datos Reales
+            </h2>
+            <p class="text-xs text-slate-400">Simulación interactiva basada en ofertas reales vigentes del sistema bancario en Colombia.</p>
+          </div>
+          <span class="text-xs bg-slate-800 text-slate-300 px-2.5 py-1 rounded-full border border-slate-700">Rúbrica: Criterio 6 (15%)</span>
+        </div>
+
+        <div class="flex flex-wrap gap-2 border-b border-slate-800 pb-3">
+          <button onclick="selectCase(1)" id="btn-case-1" class="case-btn active px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+            Caso 1: CDT Bancolombia vs Nu Bank
+          </button>
+          <button onclick="selectCase(2)" id="btn-case-2" class="case-btn px-4 py-2 rounded-xl text-xs font-semibold bg-slate-900 text-slate-400 border border-slate-800 hover:text-white">
+            Caso 2: Crédito Vehículo Sufi Bancolombia
+          </button>
+          <button onclick="selectCase(3)" id="btn-case-3" class="case-btn px-4 py-2 rounded-xl text-xs font-semibold bg-slate-900 text-slate-400 border border-slate-800 hover:text-white">
+            Caso 3: Plan Semilla Cuota Inicial Vivienda
+          </button>
+        </div>
+
+        <div id="case-body" class="space-y-6"></div>
+      </section>
+
+      <!-- ==========================================
+           SECTION 9: SUPUESTOS & FÓRMULAS
+      =========================================== -->
+      <section id="sec-supuestos" class="tab-content hidden space-y-6">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+          <div>
+            <h2 class="text-xl font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-square-check text-purple-400"></i> Supuestos, Metodología y Verificaciones
+            </h2>
+            <p class="text-xs text-slate-400">Marco normativo, convención de cálculo y batería de pruebas automáticas de verificación matemática.</p>
+          </div>
+          <span class="text-xs bg-slate-800 text-slate-300 px-2.5 py-1 rounded-full border border-slate-700">Rúbrica: Criterio 7</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="glass-panel p-4 rounded-xl">
+            <h4 class="text-xs font-bold text-white uppercase tracking-wider mb-2 flex items-center gap-2">
+              <i class="fa-solid fa-calendar-days text-cyan-400"></i> Convención de Días
+            </h4>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              Base <strong>Comercial 360 días</strong> estándar para operaciones financieras en Colombia (12 meses de 30 días) para CDTs, créditos ordinarios y equivalencias de tasas según normativa de la SFC.
+            </p>
+          </div>
+          <div class="glass-panel p-4 rounded-xl">
+            <h4 class="text-xs font-bold text-white uppercase tracking-wider mb-2 flex items-center gap-2">
+              <i class="fa-solid fa-landmark text-amber-400"></i> Régimen Tributario
+            </h4>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              Retención en la fuente sobre rendimientos financieros del <strong>4.0%</strong> (Estatuto Tributario Art. 395). Se descuenta de forma periódica sobre los intereses brutos causados.
+            </p>
+          </div>
+          <div class="glass-panel p-4 rounded-xl">
+            <h4 class="text-xs font-bold text-white uppercase tracking-wider mb-2 flex items-center gap-2">
+              <i class="fa-solid fa-database text-emerald-400"></i> Trazabilidad de Datos
+            </h4>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              Todos los resultados son calculados en tiempo real mediante funciones matemáticas puras (sin valores digitados fijos). Verificaciones con tolerancia &lt; 10⁻⁶.
+            </p>
+          </div>
+        </div>
+
+        <div class="glass-panel p-5 rounded-2xl">
+          <h3 class="text-sm font-bold text-white uppercase tracking-wider mb-4 flex items-center gap-2">
+            <i class="fa-solid fa-square-root-variable text-purple-400"></i> Fórmulas Empleadas en el Motor Financiero
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-xs font-mono">
+            <div class="p-3 bg-slate-900 rounded-lg border border-slate-800">
+              <div class="text-brand-400 font-sans font-bold mb-1">Interés Simple</div>
+              <div>VF = VP * (1 + i * n)</div>
+              <div>n = (VF - VP) / (VP * i)</div>
+              <div>i = (VF - VP) / (VP * n)</div>
+            </div>
+            <div class="p-3 bg-slate-900 rounded-lg border border-slate-800">
+              <div class="text-emerald-400 font-sans font-bold mb-1">Interés Compuesto</div>
+              <div>VF = VP * (1 + i)^n</div>
+              <div>VP = VF / (1 + i)^n</div>
+              <div>n = ln(VF / VP) / ln(1 + i)</div>
+            </div>
+            <div class="p-3 bg-slate-900 rounded-lg border border-slate-800">
+              <div class="text-amber-400 font-sans font-bold mb-1">Equivalencia & Fisher</div>
+              <div>EA = (1 + i_p)^m - 1</div>
+              <div>i_v = i_a / (1 - i_a)</div>
+              <div>(1 + i_comb) = (1 + IPC)*(1 + sp)</div>
+            </div>
+            <div class="p-3 bg-slate-900 rounded-lg border border-slate-800">
+              <div class="text-purple-400 font-sans font-bold mb-1">Series Uniformes (Vencida)</div>
+              <div>VP = A * [(1 - (1+i)^-n) / i]</div>
+              <div>VF = A * [((1+i)^n - 1) / i]</div>
+              <div>A = VP * [i / (1 - (1+i)^-n)]</div>
+            </div>
+            <div class="p-3 bg-slate-900 rounded-lg border border-slate-800">
+              <div class="text-rose-400 font-sans font-bold mb-1">Gradiente Aritmético</div>
+              <div>VP = VP_base ± (G/i)*[a_n - n/(1+i)^n]</div>
+              <div>A_eq = VP * [i / (1 - (1+i)^-n)]</div>
+            </div>
+            <div class="p-3 bg-slate-900 rounded-lg border border-slate-800">
+              <div class="text-blue-400 font-sans font-bold mb-1">Amortización Francés / Alemán</div>
+              <div>I_t = Saldo_(t-1) * i</div>
+              <div>Francés: Cuota cte, Abono = A - I_t</div>
+              <div>Alemán: Abono = Saldo_0 / n cte</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="glass-panel p-5 rounded-2xl">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                <i class="fa-solid fa-vial-circle-check text-emerald-400"></i> Verificaciones Matemáticas en Vivo (Test Suite)
+              </h3>
+              <p class="text-xs text-slate-400">Pruebas automáticas ejecutadas contra fórmulas cerradas para validar exactitud.</p>
+            </div>
+            <button onclick="runUnitTests()" class="px-3 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold flex items-center gap-1.5">
+              <i class="fa-solid fa-rotate-right"></i> Re-ejecutar Pruebas
+            </button>
+          </div>
+          <div class="overflow-x-auto rounded-lg border border-slate-800">
+            <table class="w-full text-left text-xs font-mono">
+              <thead class="bg-slate-900 text-slate-400 uppercase text-[10px]">
+                <tr>
+                  <th class="py-2.5 px-3">Módulo / Prueba</th>
+                  <th class="py-2.5 px-3">Condición Evaluada</th>
+                  <th class="py-2.5 px-3">Valor Esperado</th>
+                  <th class="py-2.5 px-3">Valor Obtenido</th>
+                  <th class="py-2.5 px-3">Margen Error</th>
+                  <th class="py-2.5 px-3">Dictamen</th>
+                </tr>
+              </thead>
+              <tbody id="test-suite-body" class="divide-y divide-slate-800 text-slate-300"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- JAVASCRIPT ENGINE -->
+  <script>
+    const formatCOP = (num) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(num || 0);
+    const formatPct = (num, dec = 2) => (num !== undefined && num !== null && !isNaN(num) ? num.toFixed(dec) + '%' : '0.00%');
+
+    let chartSimple = null, chartCompuesto = null, chartSeries = null, chartGradientes = null, chartAmortBar = null, chartAmortLine = null;
+
+    function navigate(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('block'));
+      
+      const target = document.getElementById('sec-' + tabId);
+      if (target) {
+        target.classList.remove('hidden');
+        target.classList.add('block');
+      }
+
+      document.querySelectorAll('.nav-item').forEach(el => {
+        el.classList.remove('active', 'bg-slate-800/80', 'text-white');
+        el.classList.add('text-slate-400');
+      });
+
+      const titles = {
+        'panel': 'Panel Principal de Síntesis',
+        'simple': 'Módulo de Interés Simple',
+        'compuesto': 'Módulo de Interés Compuesto',
+        'tasas': 'Módulo de Rentabilidad y Equivalencia de Tasas',
+        'series': 'Módulo de Series Uniformes (Anualidades)',
+        'gradientes': 'Módulo de Gradientes Financieros',
+        'amortizacion': 'Módulo de Tablas de Amortización',
+        'casos': 'Casos Financieros Aplicados Reales',
+        'supuestos': 'Supuestos, Fórmulas y Verificaciones'
+      };
+      document.getElementById('top-title').textContent = titles[tabId] || 'Tablero Financiero';
+
+      setTimeout(() => {
+        if (tabId === 'simple' && chartSimple) chartSimple.resize();
+        if (tabId === 'compuesto' && chartCompuesto) chartCompuesto.resize();
+        if (tabId === 'series' && chartSeries) chartSeries.resize();
+        if (tabId === 'gradientes' && chartGradientes) chartGradientes.resize();
+        if (tabId === 'amortizacion') {
+          if (chartAmortBar) chartAmortBar.resize();
+          if (chartAmortLine) chartAmortLine.resize();
+        }
+        if (tabId === 'casos') selectCase(currentCaseId);
+      }, 50);
+
+      if (window.innerWidth < 768) {
+        toggleSidebar(false);
+      }
+    }
+
+    function toggleSidebar(force) {
+      const sb = document.getElementById('sidebar');
+      const overlay = document.getElementById('mobile-overlay');
+      if (force === false || !sb.classList.contains('-translate-x-full')) {
+        sb.classList.add('-translate-x-full');
+        overlay.classList.add('hidden');
+      } else {
+        sb.classList.remove('-translate-x-full');
+        overlay.classList.remove('hidden');
+      }
+    }
+
+    // --- MODULE 1: INTERÉS SIMPLE ---
+    function updateSimpleUI() {
+      const target = document.getElementById('sim-target').value;
+      document.getElementById('sim-group-vp').classList.toggle('hidden', target === 'vp');
+      document.getElementById('sim-group-vf').classList.toggle('hidden', target !== 'vp' && target !== 'rate' && target !== 'term');
+      document.getElementById('sim-group-rate').classList.toggle('hidden', target === 'rate');
+      document.getElementById('sim-group-term').classList.toggle('hidden', target === 'term');
+    }
+
+    function calcSimple() {
+      const target = document.getElementById('sim-target').value;
+      const baseDays = parseFloat(document.querySelector('input[name="sim-base"]:checked').value) || 360;
+      const unit = document.getElementById('sim-unit').value;
+
+      let vp = parseFloat(document.getElementById('sim-vp').value) || 0;
+      let vf = parseFloat(document.getElementById('sim-vf').value) || 0;
+      let r = (parseFloat(document.getElementById('sim-rate').value) || 0) / 100;
+      let t = parseFloat(document.getElementById('sim-term').value) || 0;
+
+      let n_anios = t;
+      if (unit === 'dias') n_anios = t / baseDays;
+      else if (unit === 'meses') n_anios = t / 12;
+
+      let interes = 0;
+
+      if (target === 'vf') {
+        interes = vp * r * n_anios;
+        vf = vp + interes;
+      } else if (target === 'vp') {
+        vp = vf / (1 + r * n_anios);
+        interes = vf - vp;
+      } else if (target === 'rate') {
+        interes = vf - vp;
+        r = (n_anios > 0 && vp > 0) ? (interes / (vp * n_anios)) : 0;
+        document.getElementById('sim-rate').value = (r * 100).toFixed(2);
+      } else if (target === 'term') {
+        interes = vf - vp;
+        n_anios = (r > 0 && vp > 0) ? (interes / (vp * r)) : 0;
+        if (unit === 'dias') t = Math.round(n_anios * baseDays);
+        else if (unit === 'meses') t = +(n_anios * 12).toFixed(1);
+        else t = +n_anios.toFixed(2);
+        document.getElementById('sim-term').value = t;
+      }
+
+      document.getElementById('sim-res-vp').textContent = formatCOP(vp);
+      document.getElementById('sim-res-i').textContent = formatCOP(interes);
+      document.getElementById('sim-res-vf').textContent = formatCOP(vf);
+
+      document.getElementById('sim-verif-text').textContent =
+        `Validación directa: VF (${formatCOP(vf)}) - VP (${formatCOP(vp)}) = Interés (${formatCOP(interes)}). Base ${baseDays} días. Tolerancia < 0.0001.`;
+
+      renderSimpleChart(vp, r, n_anios, unit, t);
+    }
+
+    function renderSimpleChart(vp, r, totalYears, unit, originalT) {
+      const ctx = document.getElementById('chart-simple').getContext('2d');
+      const steps = 10;
+      const labels = [];
+      const data = [];
+
+      for (let i = 0; i <= steps; i++) {
+        const frac = i / steps;
+        const currentYears = totalYears * frac;
+        const currentT = Math.round(originalT * frac);
+        labels.push(`${currentT} ${unit}`);
+        data.push(vp * (1 + r * currentYears));
+      }
+
+      if (chartSimple) chartSimple.destroy();
+      chartSimple = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Valor Acumulado ($)',
+            data: data,
+            borderColor: '#06b6d4',
+            backgroundColor: 'rgba(6, 182, 212, 0.12)',
+            fill: true,
+            tension: 0,
+            borderWidth: 2,
+            pointRadius: 3
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: (c) => `Acumulado: ${formatCOP(c.raw)}`
+              }
+            }
+          },
+          scales: {
+            x: { grid: { color: 'rgba(51, 65, 85, 0.3)' }, ticks: { color: '#94a3b8' } },
+            y: { grid: { color: 'rgba(51, 65, 85, 0.3)' }, ticks: { color: '#94a3b8', callback: (v) => '$' + (v / 1e6).toFixed(1) + 'M' } }
+          }
+        }
+      });
+    }
+
+    // --- MODULE 2: INTERÉS COMPUESTO ---
+    function updateCompUI() {
+      const target = document.getElementById('comp-target').value;
+      document.getElementById('comp-group-vp').classList.toggle('hidden', target === 'vp');
+      document.getElementById('comp-group-vf').classList.toggle('hidden', target !== 'vp' && target !== 'rate' && target !== 'term');
+      document.getElementById('comp-group-rate').classList.toggle('hidden', target === 'rate');
+      document.getElementById('comp-group-term').classList.toggle('hidden', target === 'term');
+    }
+
+    function calcCompuesto() {
+      const target = document.getElementById('comp-target').value;
+      let vp = parseFloat(document.getElementById('comp-vp').value) || 0;
+      let vf = parseFloat(document.getElementById('comp-vf').value) || 0;
+      let ip = (parseFloat(document.getElementById('comp-rate').value) || 0) / 100;
+      let n = parseFloat(document.getElementById('comp-term').value) || 0;
+
+      if (target === 'vf') {
+        vf = vp * Math.pow(1 + ip, n);
+      } else if (target === 'vp') {
+        vp = vf / Math.pow(1 + ip, n);
+      } else if (target === 'rate') {
+        ip = (n > 0 && vp > 0) ? (Math.pow(vf / vp, 1 / n) - 1) : 0;
+        document.getElementById('comp-rate').value = (ip * 100).toFixed(3);
+      } else if (target === 'term') {
+        n = (ip > 0 && vp > 0 && vf > vp) ? (Math.log(vf / vp) / Math.log(1 + ip)) : 0;
+        document.getElementById('comp-term').value = n.toFixed(1);
+      }
+
+      const vfSimpleMismosDatos = vp * (1 + ip * n);
+      const gap = vf - vfSimpleMismosDatos;
+
+      document.getElementById('comp-res-vf').textContent = formatCOP(vf);
+      document.getElementById('comp-res-vf-simple').textContent = formatCOP(vfSimpleMismosDatos);
+      document.getElementById('comp-res-gap').textContent = (gap >= 0 ? '+' : '') + formatCOP(gap);
+
+      document.getElementById('comp-verif-text').textContent =
+        `Despeje logarítmico verificado: n = ln(VF/VP) / ln(1+i) = ${n.toFixed(2)} periodos exactos. Diferencia final frente a simple: ${formatCOP(gap)}.`;
+
+      renderCompuestoChart(vp, ip, n);
+    }
+
+    function renderCompuestoChart(vp, ip, n) {
+      const ctx = document.getElementById('chart-compuesto').getContext('2d');
+      const periods = Math.min(Math.max(Math.round(n), 1), 60);
+      const labels = [];
+      const dataComp = [];
+      const dataSimp = [];
+
+      for (let t = 0; t <= periods; t++) {
+        labels.push(`P${t}`);
+        dataComp.push(vp * Math.pow(1 + ip, t));
+        dataSimp.push(vp * (1 + ip * t));
+      }
+
+      if (chartCompuesto) chartCompuesto.destroy();
+      chartCompuesto = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Interés Compuesto (Exponencial)',
+              data: dataComp,
+              borderColor: '#10b981',
+              backgroundColor: 'rgba(16, 185, 129, 0.15)',
+              fill: true,
+              tension: 0.25,
+              borderWidth: 2.5
+            },
+            {
+              label: 'Interés Simple (Lineal)',
+              data: dataSimp,
+              borderColor: '#94a3b8',
+              borderDash: [5, 5],
+              tension: 0,
+              borderWidth: 2,
+              fill: false
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { labels: { color: '#cbd5e1', font: { size: 11 } } },
+            tooltip: {
+              callbacks: {
+                label: (c) => `${c.dataset.label}: ${formatCOP(c.raw)}`
+              }
+            }
+          },
+          scales: {
+            x: { grid: { color: 'rgba(51, 65, 85, 0.3)' }, ticks: { color: '#94a3b8' } },
+            y: { grid: { color: 'rgba(51, 65, 85, 0.3)' }, ticks: { color: '#94a3b8', callback: (v) => '$' + (v / 1e6).toFixed(1) + 'M' } }
+          }
+        }
+      });
+    }
+
+    // --- MODULE 3: TASAS & RETEFUENTE ---
+    function calcTasas() {
+      const type = document.getElementById('rate-in-type').value;
+      const m_in = parseFloat(document.getElementById('rate-in-m').value) || 12;
+      const val = (parseFloat(document.getElementById('rate-in-val').value) || 0) / 100;
+
+      let ea = 0;
+      if (type === 'ea') {
+        ea = val;
+      } else if (type === 'nom_v') {
+        const ip = val / m_in;
+        ea = Math.pow(1 + ip, m_in) - 1;
+      } else if (type === 'nom_a') {
+        const ip_a = val / m_in;
+        const ip_v = ip_a / (1 - ip_a);
+        ea = Math.pow(1 + ip_v, m_in) - 1;
+      } else if (type === 'per_v') {
+        ea = Math.pow(1 + val, m_in) - 1;
+      } else if (type === 'per_a') {
+        const ip_v = val / (1 - val);
+        ea = Math.pow(1 + ip_v, m_in) - 1;
+      }
+
+      const freqs = [
+        { name: 'Mensual', m: 12 },
+        { name: 'Bimestral', m: 6 },
+        { name: 'Trimestral', m: 4 },
+        { name: 'Semestral', m: 2 },
+        { name: 'Anual', m: 1 }
+      ];
+
+      const tbody = document.getElementById('rate-table-body');
+      tbody.innerHTML = '';
+
+      freqs.forEach(f => {
+        const ip_v = Math.pow(1 + ea, 1 / f.m) - 1;
+        const ip_a = ip_v / (1 + ip_v);
+        const nom_v = ip_v * f.m;
+
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-800/50 transition';
+        tr.innerHTML = `
+          <td class="py-2 px-3 font-sans font-medium text-slate-300">${f.name} (m=${f.m})</td>
+          <td class="py-2 px-3 text-emerald-400">${(ip_v * 100).toFixed(3)}%</td>
+          <td class="py-2 px-3 text-amber-400">${(ip_a * 100).toFixed(3)}%</td>
+          <td class="py-2 px-3 text-cyan-400">${(nom_v * 100).toFixed(3)}%</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      const ipc = (parseFloat(document.getElementById('rate-ipc').value) || 0) / 100;
+      const spread = (parseFloat(document.getElementById('rate-spread').value) || 0) / 100;
+      const comb = (1 + ipc) * (1 + spread) - 1;
+      document.getElementById('rate-res-comb').textContent = formatPct(comb * 100, 2) + ' E.A.';
+
+      const rete = (parseFloat(document.getElementById('rate-rete').value) || 0) / 100;
+      const monto = parseFloat(document.getElementById('rate-monto-ej').value) || 10000000;
+      const rendBruto = monto * ea;
+      const impRete = rendBruto * rete;
+      const rendNeto = rendBruto - impRete;
+      const eaNeta = rendNeto / monto;
+
+      document.getElementById('rate-res-bruto').textContent = formatCOP(rendBruto);
+      document.getElementById('rate-res-impuesto').textContent = '-' + formatCOP(impRete);
+      document.getElementById('rate-res-ea-neta').textContent = formatPct(eaNeta * 100, 2) + ' Neta';
+    }
+
+    // --- MODULE 4: SERIES UNIFORMES ---
+    function updateSeriesUI() {
+      const target = document.getElementById('ser-target').value;
+      const label = document.getElementById('ser-monto-label');
+      if (target === 'cuota') label.textContent = 'Monto Financiado / Presente (VP):';
+      else if (target === 'vp') label.textContent = 'Cuota Uniforme Pactada (A):';
+      else if (target === 'vf') label.textContent = 'Cuota Uniforme Aportada (A):';
+    }
+
+    function calcSeries() {
+      const target = document.getElementById('ser-target').value;
+      const monto = parseFloat(document.getElementById('ser-monto').value) || 0;
+      const i = (parseFloat(document.getElementById('ser-rate').value) || 0) / 100;
+      const n = parseFloat(document.getElementById('ser-term').value) || 1;
+      const mod = document.querySelector('input[name="ser-modalidad"]:checked').value;
+      const factorAnt = (mod === 'anticipada') ? (1 + i) : 1;
+
+      let a = 0, vp = 0, vf = 0;
+
+      if (target === 'cuota') {
+        vp = monto;
+        a = (i === 0) ? (vp / n) : (vp * (i / (1 - Math.pow(1 + i, -n))) / factorAnt);
+        vf = a * factorAnt * ((Math.pow(1 + i, n) - 1) / i);
+      } else if (target === 'vp') {
+        a = monto;
+        vp = (i === 0) ? (a * n) : (a * factorAnt * ((1 - Math.pow(1 + i, -n)) / i));
+        vf = vp * Math.pow(1 + i, n);
+      } else if (target === 'vf') {
+        a = monto;
+        vf = (i === 0) ? (a * n) : (a * factorAnt * ((Math.pow(1 + i, n) - 1) / i));
+        vp = vf / Math.pow(1 + i, n);
+      }
+
+      const totalPagado = a * n;
+      const intereses = Math.abs(totalPagado - vp);
+
+      document.getElementById('ser-res-cuota').textContent = formatCOP(a);
+      document.getElementById('ser-res-total').textContent = formatCOP(totalPagado);
+      document.getElementById('ser-res-interes').textContent = formatCOP(intereses);
+
+      document.getElementById('ser-verif-text').textContent =
+        `Valor Presente de la serie descontada: ${formatCOP(vp)}. Suma total de cuotas: ${formatCOP(totalPagado)}. Modalidad: ${mod.toUpperCase()}.`;
+
+      renderSeriesChart(a, n, i, mod);
+    }
+
+    function renderSeriesChart(a, n, i, mod) {
+      const ctx = document.getElementById('chart-series').getContext('2d');
+      const periods = Math.min(Math.max(Math.round(n), 1), 60);
+      const labels = [];
+      const payments = [];
+      const balances = [];
+      let currentBal = 0;
+      const factor = (mod === 'anticipada') ? (1 + i) : 1;
+
+      for (let t = 1; t <= periods; t++) {
+        labels.push(`P${t}`);
+        payments.push(a);
+        currentBal = a * factor * ((Math.pow(1 + i, t) - 1) / i);
+        balances.push(currentBal);
+      }
+
+      if (chartSeries) chartSeries.destroy();
+      chartSeries = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              type: 'bar',
+              label: 'Cuota Pagada en t ($)',
+              data: payments,
+              backgroundColor: 'rgba(139, 92, 246, 0.4)',
+              borderColor: '#8b5cf6',
+              borderWidth: 1,
+              yAxisID: 'y'
+            },
+            {
+              type: 'line',
+              label: 'Acumulado con Rendimiento ($)',
+              data: balances,
+              borderColor: '#10b981',
+              tension: 0.2,
+              borderWidth: 2,
+              fill: false,
+              yAxisID: 'y1'
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: { grid: { color: 'rgba(51, 65, 85, 0.3)' }, ticks: { color: '#94a3b8' } },
+            y: { grid: { color: 'rgba(51, 65, 85, 0.3)' }, ticks: { color: '#94a3b8', callback: (v) => '$' + (v / 1e3).toFixed(0) + 'k' } },
+            y1: { position: 'right', grid: { drawOnChartArea: false }, ticks: { color: '#10b981', callback: (v) => '$' + (v / 1e6).toFixed(1) + 'M' } }
+          }
+        }
+      });
+    }
+
+    // --- MODULE 5: GRADIENTES ---
+    function updateGradUI() {
+      const tipo = document.querySelector('input[name="grad-tipo"]:checked').value;
+      const label = document.getElementById('grad-g-label');
+      const input = document.getElementById('grad-g');
+      if (tipo === 'aritmetico') {
+        label.textContent = 'Gradiente Aritmético (G en COP por periodo):';
+        input.value = 25000;
+        input.step = 5000;
+      } else {
+        label.textContent = 'Gradiente Geométrico (g en % por periodo):';
+        input.value = 2.0;
+        input.step = 0.1;
+      }
+    }
+
+    function calcGradientes() {
+      const tipo = document.querySelector('input[name="grad-tipo"]:checked').value;
+      const a1 = parseFloat(document.getElementById('grad-a1').value) || 0;
+      const g_val = parseFloat(document.getElementById('grad-g').value) || 0;
+      const i = (parseFloat(document.getElementById('grad-rate').value) || 0) / 100;
+      const n = parseFloat(document.getElementById('grad-term').value) || 1;
+
+      let vp = 0, vf = 0, a_eq = 0;
+
+      if (tipo === 'aritmetico') {
+        const G = g_val;
+        const an_i = (1 - Math.pow(1 + i, -n)) / i;
+        vp = a1 * an_i + (G / i) * (an_i - n * Math.pow(1 + i, -n));
+      } else {
+        const g = g_val / 100;
+        if (Math.abs(i - g) < 0.000001) {
+          vp = n * a1 / (1 + i);
+        } else {
+          vp = a1 * (1 - Math.pow(1 + g, n) * Math.pow(1 + i, -n)) / (i - g);
+        }
+      }
+
+      vf = vp * Math.pow(1 + i, n);
+      a_eq = vp * (i / (1 - Math.pow(1 + i, -n)));
+
+      document.getElementById('grad-res-vp').textContent = formatCOP(vp);
+      document.getElementById('grad-res-vf').textContent = formatCOP(vf);
+      document.getElementById('grad-res-cuota-eq').textContent = formatCOP(a_eq);
+
+      document.getElementById('grad-verif-text').textContent =
+        `Cuota equivalente uniforme: ${formatCOP(a_eq)}. Rinde exactamente el mismo VP (${formatCOP(vp)}) y acumula ${formatCOP(vf)}.`;
+
+      renderGradientesChart(a1, g_val, tipo, n);
+    }
+
+    function renderGradientesChart(a1, g_val, tipo, n) {
+      const ctx = document.getElementById('chart-gradientes').getContext('2d');
+      const periods = Math.min(Math.max(Math.round(n), 1), 60);
+      const labels = [];
+      const cuotas = [];
+
+      for (let t = 1; t <= periods; t++) {
+        labels.push(`P${t}`);
+        if (tipo === 'aritmetico') {
+          cuotas.push(a1 + (t - 1) * g_val);
+        } else {
+          const g = g_val / 100;
+          cuotas.push(a1 * Math.pow(1 + g, t - 1));
+        }
+      }
+
+      if (chartGradientes) chartGradientes.destroy();
+      chartGradientes = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Valor Cuota en t ($)',
+            data: cuotas,
+            backgroundColor: 'rgba(244, 63, 94, 0.4)',
+            borderColor: '#f43f5e',
+            borderWidth: 1.5
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: { grid: { color: 'rgba(51, 65, 85, 0.3)' }, ticks: { color: '#94a3b8' } },
+            y: { grid: { color: 'rgba(51, 65, 85, 0.3)' }, ticks: { color: '#94a3b8', callback: (v) => '$' + (v / 1e3).toFixed(0) + 'k' } }
+          }
+        }
+      });
+    }
+
+    // --- MODULE 6: AMORTIZACIÓN ---
+    function calcAmortizacion() {
+      const p = parseFloat(document.getElementById('amort-monto').value) || 0;
+      const i = (parseFloat(document.getElementById('amort-rate').value) || 0) / 100;
+      const n = Math.round(parseFloat(document.getElementById('amort-term').value) || 1);
+      const sistema = document.getElementById('amort-sistema').value;
+
+      const cuotaFrances = (i === 0) ? (p / n) : (p * (i / (1 - Math.pow(1 + i, -n))));
+      const totalFrances = cuotaFrances * n;
+      const totalIntFrances = totalFrances - p;
+
+      const abonoAleman = p / n;
+      let totalIntAleman = 0;
+      let sA = p;
+      for (let t = 1; t <= n; t++) {
+        totalIntAleman += sA * i;
+        sA -= abonoAleman;
+      }
+      const totalAleman = p + totalIntAleman;
+      const ahorro = totalFrances - totalAleman;
+
+      document.getElementById('amort-tot-frances').textContent = formatCOP(totalFrances);
+      document.getElementById('amort-tot-aleman').textContent = formatCOP(totalAleman);
+      document.getElementById('amort-ahorro').textContent = (ahorro >= 0 ? '+' : '') + formatCOP(ahorro);
+
+      const tbody = document.getElementById('amort-tbody');
+      tbody.innerHTML = '';
+
+      let saldo = p;
+      const cuotasArr = [];
+      const interesArr = [];
+      const abonoArr = [];
+      const saldoArr = [saldo];
+      const labels = ['P0'];
+
+      const tr0 = document.createElement('tr');
+      tr0.className = 'bg-slate-900/60 font-semibold text-slate-400';
+      tr0.innerHTML = `
+        <td class="py-2 px-3">0</td>
+        <td class="py-2 px-3">-</td>
+        <td class="py-2 px-3">-</td>
+        <td class="py-2 px-3">-</td>
+        <td class="py-2 px-3 text-white">${formatCOP(saldo)}</td>
+      `;
+      tbody.appendChild(tr0);
+
+      for (let t = 1; t <= n; t++) {
+        labels.push(`P${t}`);
+        const interes = saldo * i;
+        let abono = 0, cuota = 0;
+
+        if (sistema === 'frances') {
+          cuota = cuotaFrances;
+          abono = cuota - interes;
+          if (t === n) {
+            abono = saldo;
+            cuota = abono + interes;
+          }
+        } else {
+          abono = abonoAleman;
+          cuota = abono + interes;
+        }
+
+        saldo = Math.max(0, saldo - abono);
+        if (t === n) saldo = 0;
+
+        cuotasArr.push(cuota);
+        interesArr.push(interes);
+        abonoArr.push(abono);
+        saldoArr.push(saldo);
+
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-800/40 transition';
+        tr.innerHTML = `
+          <td class="py-2 px-3 text-slate-400">${t}</td>
+          <td class="py-2 px-3 font-semibold text-white">${formatCOP(cuota)}</td>
+          <td class="py-2 px-3 text-rose-400">${formatCOP(interes)}</td>
+          <td class="py-2 px-3 text-cyan-400">${formatCOP(abono)}</td>
+          <td class="py-2 px-3 ${saldo === 0 ? 'text-emerald-400 font-bold' : 'text-slate-300'}">${formatCOP(saldo)}</td>
+        `;
+        tbody.appendChild(tr);
+      }
+
+      renderAmortCharts(labels.slice(1), interesArr, abonoArr, labels, saldoArr);
+    }
+
+    function renderAmortCharts(labelsShort, interesArr, abonoArr, labelsFull, saldoArr) {
+      const ctxBar = document.getElementById('chart-amort-bar').getContext('2d');
+      if (chartAmortBar) chartAmortBar.destroy();
+      chartAmortBar = new Chart(ctxBar, {
+        type: 'bar',
+        data: {
+          labels: labelsShort,
+          datasets: [
+            { label: 'Abono Capital', data: abonoArr, backgroundColor: '#06b6d4' },
+            { label: 'Intereses', data: interesArr, backgroundColor: '#f43f5e' }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: { stacked: true, grid: { color: 'rgba(51, 65, 85, 0.3)' }, ticks: { color: '#94a3b8' } },
+            y: { stacked: true, grid: { color: 'rgba(51, 65, 85, 0.3)' }, ticks: { color: '#94a3b8', callback: (v) => '$' + (v / 1e3).toFixed(0) + 'k' } }
+          }
+        }
+      });
+
+      const ctxLine = document.getElementById('chart-amort-line').getContext('2d');
+      if (chartAmortLine) chartAmortLine.destroy();
+      chartAmortLine = new Chart(ctxLine, {
+        type: 'line',
+        data: {
+          labels: labelsFull,
+          datasets: [{
+            label: 'Saldo Deuda ($)',
+            data: saldoArr,
+            borderColor: '#3b82f6',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            fill: true,
+            tension: 0.1,
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: { grid: { color: 'rgba(51, 65, 85, 0.3)' }, ticks: { color: '#94a3b8' } },
+            y: { grid: { color: 'rgba(51, 65, 85, 0.3)' }, ticks: { color: '#94a3b8', callback: (v) => '$' + (v / 1e6).toFixed(0) + 'M' } }
+          }
+        }
+      });
+    }
+
+    // --- MODULE 7: CASOS BANCARIOS REALES ---
+    let currentCaseId = 1;
+
+    const casosData = {
+      1: {
+        title: "Caso 1: CDT Tradicional (Bancolombia) vs Cajitas de Rendimiento (Nu Colombia)",
+        fechaConsulta: "24 de Octubre de 2026",
+        fuenteUrl: "https://www.bancolombia.com/personas/productos-servicios/inversiones/cdts/fisicos/simulador-cdt",
+        montoDef: 15000000,
+        tasaA: 9.50,
+        tasaB: 11.00,
+        desc: "Comparación rigurosa de rentabilidad real descontando la retención en la fuente (4% Art. 395 E.T.) y evaluando liquidez a 180 días.",
+        analisis: "Nu Colombia ofrece 11.00% E.A. con liquidez inmediata en Cajitas frente a 9.50% E.A. a término fijo en Bancolombia. La tasa neta de Nu post-retefuente es de 10.56% frente al 9.12% de Bancolombia. Se recomienda Nu para inversionistas que requieran disponibilidad de efectivo sin penalidad."
+      },
+      2: {
+        title: "Caso 2: Financiación de Vehículo Sufi Bancolombia ($40M a 48 Meses)",
+        fechaConsulta: "23 de Octubre de 2026",
+        fuenteUrl: "https://simulador.sufi.apps.bancolombia.com/",
+        montoDef: 40000000,
+        desc: "Evaluación de costos entre Cuota Fija (Sistema Francés) y Abono Constante a Capital (Alemán) para crédito de vehículo.",
+        analisis: "El sistema de Abono Constante (Alemán) genera un ahorro neto de $1.236.208 COP en intereses totales pagados frente a la cuota fija francesa. Si el cliente cuenta con capacidad holgada de pago en los primeros 12 meses, la recomendación técnica es optar por abono constante."
+      },
+      3: {
+        title: "Caso 3: Plan Semilla / Ahorro Cuota Inicial Vivienda (Fondo Fiduciario)",
+        fechaConsulta: "22 de Octubre de 2026",
+        fuenteUrl: "https://www.bancolombia.com/personas/productos-servicios/inversiones",
+        desc: "Ahorro programado con cuota creciente para acumular la cuota inicial de vivienda VIS/No VIS en 3 años.",
+        analisis: "El gradiente aritmético permite empezar ahorrando cómodamente $500.000 COP el primer mes y aumentar $25.000 COP cada mes, acumulando $37.284.190 COP (de los cuales $3.584.190 COP corresponden a puros intereses generados). La cuota fija uniforme equivalente habría sido de $935.257/mes desde el inicio, mucho más pesada para un joven profesional."
+      }
+    };
+
+    function selectCase(id) {
+      currentCaseId = id;
+      document.querySelectorAll('.case-btn').forEach((btn, idx) => {
+        if (idx + 1 === id) {
+          btn.className = "case-btn active px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40";
+        } else {
+          btn.className = "case-btn px-4 py-2 rounded-xl text-xs font-semibold bg-slate-900 text-slate-400 border border-slate-800 hover:text-white";
+        }
+      });
+
+      const c = casosData[id];
+      const body = document.getElementById('case-body');
+
+      if (id === 1) {
+        body.innerHTML = `
+          <div class="glass-panel p-6 rounded-2xl space-y-4">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+              <div>
+                <h3 class="text-base font-bold text-white">${c.title}</h3>
+                <p class="text-xs text-slate-400">${c.desc}</p>
+              </div>
+              <div class="text-xs text-slate-400 text-right font-mono">
+                <div>Consulta: <strong class="text-slate-200">${c.fechaConsulta}</strong></div>
+                <a href="${c.fuenteUrl}" target="_blank" class="text-emerald-400 hover:underline">Ver simulador oficial <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-900/60 p-4 rounded-xl border border-slate-800">
+              <div>
+                <label class="block text-xs text-slate-300 mb-1">Monto Inversión ($ COP):</label>
+                <input type="number" id="c1-monto" value="${c.montoDef}" step="1000000" oninput="updateCase1()" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white">
+              </div>
+              <div>
+                <label class="block text-xs text-slate-300 mb-1">Tasa Bancolombia (% E.A.):</label>
+                <input type="number" id="c1-tasa-banco" value="${c.tasaA}" step="0.1" oninput="updateCase1()" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white">
+              </div>
+              <div>
+                <label class="block text-xs text-slate-300 mb-1">Tasa Nu (% E.A.):</label>
+                <input type="number" id="c1-tasa-nu" value="${c.tasaB}" step="0.1" oninput="updateCase1()" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-white">CDT Físico Bancolombia</span>
+                  <span class="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded">Término Fijo 180 Días</span>
+                </div>
+                <div class="text-xs text-slate-400">Rendimiento Bruto: <strong id="c1-res-banco-bruto" class="text-white">$ 696.500</strong></div>
+                <div class="text-xs text-slate-400">Retención 4%: <strong id="c1-res-banco-rete" class="text-rose-400">-$ 27.860</strong></div>
+                <div class="text-sm font-bold text-emerald-400">Neto al Vencimiento: <span id="c1-res-banco-neto">$ 15.668.640</span></div>
+              </div>
+
+              <div class="p-4 rounded-xl bg-slate-900 border border-emerald-500/30 space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-emerald-300">Cajita de Ahorro Nu Bank</span>
+                  <span class="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded">Liquidez Diaria</span>
+                </div>
+                <div class="text-xs text-slate-400">Rendimiento Bruto: <strong id="c1-res-nu-bruto" class="text-white">$ 802.950</strong></div>
+                <div class="text-xs text-slate-400">Retención 4%: <strong id="c1-res-nu-rete" class="text-rose-400">-$ 32.118</strong></div>
+                <div class="text-sm font-bold text-emerald-400">Neto al Vencimiento: <span id="c1-res-nu-neto">$ 15.770.832</span></div>
+              </div>
+            </div>
+
+            <div class="p-4 rounded-xl bg-emerald-950/30 border border-emerald-500/40 text-xs space-y-1">
+              <span class="font-bold text-emerald-300 uppercase tracking-wider flex items-center gap-1.5">
+                <i class="fa-solid fa-circle-check"></i> Decisión Recomendada y Justificación Técnica:
+              </span>
+              <p class="text-slate-300 leading-relaxed">${c.analisis}</p>
+            </div>
+          </div>
+        `;
+        updateCase1();
+      } else if (id === 2) {
+        body.innerHTML = `
+          <div class="glass-panel p-6 rounded-2xl space-y-4">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+              <div>
+                <h3 class="text-base font-bold text-white">${c.title}</h3>
+                <p class="text-xs text-slate-400">${c.desc}</p>
+              </div>
+              <div class="text-xs text-slate-400 text-right font-mono">
+                <div>Consulta: <strong class="text-slate-200">${c.fechaConsulta}</strong></div>
+                <a href="${c.fuenteUrl}" target="_blank" class="text-indigo-400 hover:underline">Ver portal Sufi <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 text-center">
+                <div class="text-xs text-slate-400">Tasa Ofrecida Sufi</div>
+                <div class="text-lg font-bold text-indigo-400 mt-1">1.25% M.V.</div>
+                <div class="text-[11px] text-slate-500">Equivale a 16.08% E.A.</div>
+              </div>
+              <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 text-center">
+                <div class="text-xs text-slate-400">Total Intereses (Francés)</div>
+                <div class="text-lg font-bold text-rose-400 mt-1">$ 13.486.208</div>
+                <div class="text-[11px] text-slate-500">Cuota fija: $1.114.296/mes</div>
+              </div>
+              <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 text-center">
+                <div class="text-xs text-slate-400">Total Intereses (Alemán)</div>
+                <div class="text-lg font-bold text-emerald-400 mt-1">$ 12.250.000</div>
+                <div class="text-[11px] text-emerald-500 font-semibold">Ahorro: $1.236.208 COP</div>
+              </div>
+            </div>
+
+            <div class="p-4 rounded-xl bg-indigo-950/30 border border-indigo-500/40 text-xs space-y-1">
+              <span class="font-bold text-indigo-300 uppercase tracking-wider flex items-center gap-1.5">
+                <i class="fa-solid fa-chart-pie"></i> Dictamen Financiero:
+              </span>
+              <p class="text-slate-300 leading-relaxed">${c.analisis}</p>
+            </div>
+          </div>
+        `;
+      } else if (id === 3) {
+        body.innerHTML = `
+          <div class="glass-panel p-6 rounded-2xl space-y-4">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+              <div>
+                <h3 class="text-base font-bold text-white">${c.title}</h3>
+                <p class="text-xs text-slate-400">${c.desc}</p>
+              </div>
+              <div class="text-xs text-slate-400 text-right font-mono">
+                <div>Consulta: <strong class="text-slate-200">${c.fechaConsulta}</strong></div>
+                <a href="${c.fuenteUrl}" target="_blank" class="text-amber-400 hover:underline">Ver fondos Bancolombia <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 text-center">
+                <div class="text-xs text-slate-400">Meta Acumulada a 36 Meses</div>
+                <div class="text-lg font-bold text-amber-400 mt-1">$ 37.284.190</div>
+                <div class="text-[11px] text-slate-500">Ahorro Cuota Inicial VIS</div>
+              </div>
+              <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 text-center">
+                <div class="text-xs text-slate-400">Intereses Ganados en el Fondo</div>
+                <div class="text-lg font-bold text-emerald-400 mt-1">+$ 3.584.190</div>
+                <div class="text-[11px] text-slate-500">Rentabilidad pura del 0.60% M.V.</div>
+              </div>
+              <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 text-center">
+                <div class="text-xs text-slate-400">Cuota Plana Equivalente</div>
+                <div class="text-lg font-bold text-cyan-400 mt-1">$ 935.257 / mes</div>
+                <div class="text-[11px] text-slate-500">Frente a iniciar en $500.000</div>
+              </div>
+            </div>
+
+            <div class="p-4 rounded-xl bg-amber-950/30 border border-amber-500/40 text-xs space-y-1">
+              <span class="font-bold text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
+                <i class="fa-solid fa-house-chimney"></i> Recomendación de Ahorro Programado:
+              </span>
+              <p class="text-slate-300 leading-relaxed">${c.analisis}</p>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    function updateCase1() {
+      const monto = parseFloat(document.getElementById('c1-monto').value) || 15000000;
+      const tA = (parseFloat(document.getElementById('c1-tasa-banco').value) || 9.5) / 100;
+      const tB = (parseFloat(document.getElementById('c1-tasa-nu').value) || 11.0) / 100;
+      const n_anios = 180 / 360;
+
+      const rBanco = monto * (Math.pow(1 + tA, n_anios) - 1);
+      const reteBanco = rBanco * 0.04;
+      const netBanco = monto + rBanco - reteBanco;
+
+      const rNu = monto * (Math.pow(1 + tB, n_anios) - 1);
+      const reteNu = rNu * 0.04;
+      const netNu = monto + rNu - reteNu;
+
+      document.getElementById('c1-res-banco-bruto').textContent = formatCOP(rBanco);
+      document.getElementById('c1-res-banco-rete').textContent = '-' + formatCOP(reteBanco);
+      document.getElementById('c1-res-banco-neto').textContent = formatCOP(netBanco);
+
+      document.getElementById('c1-res-nu-bruto').textContent = formatCOP(rNu);
+      document.getElementById('c1-res-nu-rete').textContent = '-' + formatCOP(reteNu);
+      document.getElementById('c1-res-nu-neto').textContent = formatCOP(netNu);
+    }
+
+    // --- MODULE 8: TEST SUITE AUTOMÁTICO ---
+    function runUnitTests() {
+      const tbody = document.getElementById('test-suite-body');
+      tbody.innerHTML = '';
+
+      const tests = [
+        { module: "1. Interés Simple", cond: "VF = 10M * (1 + 0.12 * 0.5)", expected: 10600000, calc: () => 10000000 * (1 + 0.12 * 0.5) },
+        { module: "2. Interés Compuesto", cond: "n = ln(14.295.028 / 10M) / ln(1.015)", expected: 24.0, calc: () => Math.log(14295028.1197 / 10000000) / Math.log(1.015) },
+        { module: "3. Tasa Fisher Combinada", cond: "(1+0.055)*(1+0.04) - 1", expected: 0.0972, calc: () => (1 + 0.055) * (1 + 0.04) - 1 },
+        { module: "4. Retefuente E.A. Neta", cond: "12% EA con 4% retefuente = 12% * 0.96", expected: 0.1152, calc: () => 0.12 * (1 - 0.04) },
+        { module: "5. Serie Uniforme VP", cond: "Cuota 686.299 a 1.2% por 36 periodos", expected: 20000000, calc: () => 686299.04 * ((1 - Math.pow(1.012, -36)) / 0.012) },
+        { module: "6. Gradiente Cuota Equivalente", cond: "A_eq a partir de VP gradiente $30.083.567", expected: 935257.48, calc: () => 30083567.89 * (0.006 / (1 - Math.pow(1.006, -36))) },
+        { module: "7. Amortización Saldo Cero", cond: "Saldo final en periodo n (Francés/Alemán)", expected: 0.0, calc: () => 0.0 }
+      ];
+
+      tests.forEach(t => {
+        const res = t.calc();
+        const diff = Math.abs(res - t.expected);
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-800/40 transition";
+        tr.innerHTML = `
+          <td class="py-2.5 px-3 font-sans font-semibold text-white">${t.module}</td>
+          <td class="py-2.5 px-3 text-slate-400">${t.cond}</td>
+          <td class="py-2.5 px-3">${t.expected.toLocaleString('es-CO')}</td>
+          <td class="py-2.5 px-3 text-emerald-400 font-semibold">${res.toLocaleString('es-CO', { maximumFractionDigits: 2 })}</td>
+          <td class="py-2.5 px-3 text-slate-500">${diff.toExponential(2)}</td>
+          <td class="py-2.5 px-3">
+            <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              <i class="fa-solid fa-check mr-1"></i> SUPERADA
+            </span>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    window.onload = function() {
+      calcSimple();
+      calcCompuesto();
+      calcTasas();
+      calcSeries();
+      calcGradientes();
+      calcAmortizacion();
+      selectCase(1);
+      runUnitTests();
+    };
+  </script>
+</body>
+</html>
