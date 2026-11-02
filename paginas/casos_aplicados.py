@@ -21,11 +21,64 @@ COLOR_GRADIENTE = estilos.TEMAS["gradientes"]["color"]
 # Cargar casos desde datos/casos.json
 RUTA_CASOS = Path("datos/casos.json")
 
+FALLBACK_INFO = {
+    "vehiculo_sufi_davivienda": {
+        "entidades": "Sufi (Grupo Bancolombia) vs. Banco Davivienda",
+        "fecha_consulta": "24 de octubre de 2026",
+        "fuentes": [
+            {
+                "nombre": "Simulador Oficial Sufi (Bancolombia)",
+                "url": "https://simulador.sufi.apps.bancolombia.com/",
+            },
+            {
+                "nombre": "Tarifario Crédito Vehículo Davivienda",
+                "url": "https://www.davivienda.com/wps/portal/personas/nuevo/personas/aqui_puedo/solicitar_credito/credito_vehiculo",
+            },
+        ],
+    },
+    "inversion_bancolombia_nu": {
+        "entidades": "Bancolombia (CDT Físico) vs. Nu Colombia / Lulo Bank (Cajitas de Ahorro)",
+        "fecha_consulta": "24 de octubre de 2026",
+        "fuentes": [
+            {
+                "nombre": "Simulador CDT Físico Bancolombia",
+                "url": "https://www.bancolombia.com/personas/productos-servicios/inversiones/cdts/fisicos/simulador-cdt",
+            },
+            {
+                "nombre": "Tarifario Cuenta Nu Colombia (12% E.A.)",
+                "url": "https://nu.com.co/cuenta/",
+            },
+        ],
+    },
+    "ahorro_cuota_inicial_gradientes": {
+        "entidades": "Fiduciaria Bancolombia (Fondo de Inversión Colectiva / Fiducuenta)",
+        "fecha_consulta": "24 de octubre de 2026",
+        "fuentes": [
+            {
+                "nombre": "Ficha Técnica FIC Abierto Bancolombia",
+                "url": "https://www.bancolombia.com/personas/productos-servicios/inversiones/fondos-inversion-colectiva",
+            },
+        ],
+    },
+}
 
-@st.cache_data
+
 def cargar_casos():
-    with open(RUTA_CASOS, "r", encoding="utf-8") as f:
-        return json.load(f)["casos"]
+    try:
+        with open(RUTA_CASOS, "r", encoding="utf-8") as f:
+            casos_cargados = json.load(f)["casos"]
+    except Exception:
+        casos_cargados = []
+
+    for c in casos_cargados:
+        fb = FALLBACK_INFO.get(c["id"], {})
+        if not c.get("entidades"):
+            c["entidades"] = fb.get("entidades", "")
+        if not c.get("fecha_consulta"):
+            c["fecha_consulta"] = fb.get("fecha_consulta", "")
+        if not c.get("fuentes"):
+            c["fuentes"] = fb.get("fuentes", [])
+    return casos_cargados
 
 
 casos = cargar_casos()
@@ -46,6 +99,10 @@ caso_seleccionado_id = st.segmented_control(
 )
 
 caso_actual = next(c for c in casos if c["id"] == caso_seleccionado_id)
+fallback = FALLBACK_INFO.get(caso_actual["id"], {})
+entidades_txt = caso_actual.get("entidades") or fallback.get("entidades", "")
+fecha_txt = caso_actual.get("fecha_consulta") or fallback.get("fecha_consulta", "")
+fuentes = caso_actual.get("fuentes") or fallback.get("fuentes", [])
 
 with estilos.tarjeta("caso_header"):
     c1, c2 = st.columns([3, 1])
@@ -55,18 +112,14 @@ with estilos.tarjeta("caso_header"):
         st.markdown(
             f"""
             <div style="display: flex; flex-wrap: wrap; gap: 1.5rem; font-size: 0.85rem; color: #94A3B8; margin-top: 0.7rem; margin-bottom: 0.8rem; padding: 0.6rem 0.9rem; background: rgba(15, 23, 42, 0.45); border-radius: 8px; border: 1px solid rgba(51, 65, 85, 0.5);">
-              <span>🏛️ <b>Entidades:</b> <span style="color: #F1F5F9;">{caso_actual.get('entidades', '')}</span></span>
-              <span>📅 <b>Fecha consulta:</b> <span style="color: #F1F5F9;">{caso_actual.get('fecha_consulta', '')}</span></span>
+              <span>🏛️ <b>Entidades:</b> <span style="color: #F1F5F9;">{entidades_txt}</span></span>
+              <span>📅 <b>Fecha consulta:</b> <span style="color: #F1F5F9;">{fecha_txt}</span></span>
             </div>
             """,
             unsafe_allow_html=True,
         )
 
         # Botones interactivos con enlaces directos a las fuentes oficiales
-        fuentes = caso_actual.get("fuentes", [])
-        if not fuentes and "fuente" in caso_actual:
-            fuentes = [{"nombre": caso_actual["fuente"], "url": caso_actual.get("fuente_url", "#")}]
-
         if fuentes:
             st.caption("Fuentes oficiales consultadas (haz clic para abrir en pestaña nueva):")
             cols_btn = st.columns(len(fuentes))
