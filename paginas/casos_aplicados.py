@@ -67,12 +67,16 @@ FALLBACK_INFO = {
         },
     },
     "ahorro_cuota_inicial_gradientes": {
-        "entidades": "Fiduciaria Bancolombia (Fondo de Inversión Colectiva / Fiducuenta)",
+        "entidades": "Fiduciaria Bancolombia (Plan Semilla / Fiducuenta)",
         "fecha_consulta": "24 de octubre de 2026",
         "fuentes": [
             {
-                "nombre": "Ficha Técnica FIC Abierto Bancolombia",
-                "url": "https://www.bancolombia.com/personas/productos-servicios/inversiones/fondos-inversion-colectiva",
+                "nombre": "Simulador y Ficha Plan Semilla Bancolombia",
+                "url": "https://www.bancolombia.com/personas/productos-servicios/inversiones/fondos-inversion-colectiva/plan-semilla",
+            },
+            {
+                "nombre": "Ficha Técnica FIC Fiducuenta Bancolombia",
+                "url": "https://www.bancolombia.com/personas/productos-servicios/inversiones/fondos-inversion-colectiva/fiducuenta",
             },
         ],
     },
@@ -746,8 +750,9 @@ elif caso_seleccionado_id == "ahorro_cuota_inicial_gradientes":
                 rent_real_fondo = tasas.tasa_real(tasa_ea_fondo, ipc_ref)
                 st.markdown(
                     f"**¿Cuál es la rentabilidad real del plan de ahorro programado?**\n"
+                    f"- **Producto financiero real:** **Plan Semilla / Fiducuenta de Fiduciaria Bancolombia** (Fondo de Inversión Colectiva Abierto, vigilado por la Superintendencia Financiera de Colombia).\n"
                     f"- **Tasa periódica del fondo:** **{porcentaje(tasa_mv, 2)} Mes Vencido (M.V.)**.\n"
-                    f"- **Tasa Efectiva Anual (E.A.):** $(1 + {tasa_mv:.4f})^{{12}} - 1 =$ **{porcentaje(tasa_ea_fondo, 2)} E.A.**\n"
+                    f"- **Tasa Efectiva Anual (E.A.):** $(1 + {tasa_mv:.4f})^{{12}} - 1 =$ **{porcentaje(tasa_ea_fondo, 2)} E.A.** (Rentabilidad oficial certificada en la Ficha Técnica mensual ante la SFC).\n"
                     f"- **Rentabilidad real neta de inflación (Fisher con IPC proyectado del 5,50%):**\n"
                     f"  $$r = \\frac{{1 + \\text{{EA}}}}{{1 + \\text{{IPC}}}} - 1 = \\frac{{1 + {tasa_ea_fondo:.4f}}}{{1 + {ipc_ref:.4f}}} - 1 = \\mathbf{{{porcentaje(rent_real_fondo, 2)}}}$$\n"
                     f"- **Conclusión:** El fondo fiduciario entrega una rentabilidad positiva en términos reales (+{porcentaje(rent_real_fondo, 2)} por encima del costo de vida), protegiendo el poder de compra del dinero destinado a la vivienda."

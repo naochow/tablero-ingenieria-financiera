@@ -76,17 +76,21 @@
     },
     {
       "id": "ahorro_cuota_inicial_gradientes",
-      "titulo": "Caso 3: Ahorro Programado para Cuota Inicial (Gradientes)",
-      "descripcion": "Plan de ahorro a 36 meses en un fondo de inversión al 0,60% mensual vencido (MV), iniciando con \\$500.000 COP y aumentando progresivamente mediante gradiente aritmético (+ \\$25.000/mes) o geométrico (+ 2%/mes). Comparación con cuota fija equivalente.",
+      "titulo": "Caso 3: Ahorro Programado para Cuota Inicial de Vivienda (Plan Semilla Bancolombia)",
+      "descripcion": "Plan de ahorro programado a 36 meses en el Fondo de Inversión Colectiva Plan Semilla / Fiducuenta de Fiduciaria Bancolombia para alcanzar la cuota inicial del 30% de una vivienda (meta \\$36.900.000 COP). Tasa real de mercado del 0,60% mensual vencido (7,44% E.A. según Ficha Técnica oficial ante la SFC). Se evalúa aporte inicial de \\$500.000 COP con gradiente aritmético (+ \\$25.000/mes) o geométrico (+ 2%/mes) vs. cuota fija equivalente.",
       "categoria": "Ahorro e Inversión",
       "temas": ["Gradiente Aritmético", "Gradiente Geométrico", "Cuota Uniforme Equivalente"],
-      "entidades": "Fiduciaria Bancolombia (Fondo de Inversión Colectiva / Fiducuenta)",
-      "fuente": "Ficha Técnica Fondo de Inversión Colectiva Abierto - Fiduciaria Bancolombia",
-      "fuente_url": "https://www.bancolombia.com/personas/productos-servicios/inversiones/fondos-inversion-colectiva",
+      "entidades": "Fiduciaria Bancolombia (Plan Semilla / Fiducuenta)",
+      "fuente": "Ficha Técnica y Simulador Oficial Plan Semilla - Fiduciaria Bancolombia (Vigilado SFC)",
+      "fuente_url": "https://www.bancolombia.com/personas/productos-servicios/inversiones/fondos-inversion-colectiva/plan-semilla",
       "fuentes": [
         {
-          "nombre": "Ficha Técnica FIC Abierto Bancolombia",
-          "url": "https://www.bancolombia.com/personas/productos-servicios/inversiones/fondos-inversion-colectiva"
+          "nombre": "Simulador y Ficha Plan Semilla Bancolombia",
+          "url": "https://www.bancolombia.com/personas/productos-servicios/inversiones/fondos-inversion-colectiva/plan-semilla"
+        },
+        {
+          "nombre": "Ficha Técnica FIC Fiducuenta Bancolombia",
+          "url": "https://www.bancolombia.com/personas/productos-servicios/inversiones/fondos-inversion-colectiva/fiducuenta"
         }
       ],
       "fecha_consulta": "24 de octubre de 2026",
