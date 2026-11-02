@@ -54,14 +54,29 @@ with estilos.tarjeta("caso_header"):
         st.markdown(caso_actual["descripcion"])
         st.markdown(
             f"""
-            <div style="display: flex; flex-wrap: wrap; gap: 1.2rem; font-size: 0.8rem; color: #94A3B8; margin-top: 0.7rem; padding-top: 0.7rem; border-top: 1px solid rgba(51, 65, 85, 0.5);">
-              <span><i class="fa-solid fa-building-columns" style="color: #6366F1;"></i> <b>Entidades:</b> <span style="color: #F1F5F9;">{caso_actual.get('entidades', '')}</span></span>
-              <span><i class="fa-solid fa-link" style="color: #10B981;"></i> <b>Fuente oficial:</b> <a href="{caso_actual.get('fuente_url', '#')}" target="_blank" style="color: #38BDF8; text-decoration: underline;">{caso_actual.get('fuente', '')}</a></span>
-              <span><i class="fa-solid fa-calendar-day" style="color: #F59E0B;"></i> <b>Fecha consulta:</b> <span style="color: #F1F5F9;">{caso_actual.get('fecha_consulta', '')}</span></span>
+            <div style="display: flex; flex-wrap: wrap; gap: 1.5rem; font-size: 0.85rem; color: #94A3B8; margin-top: 0.7rem; margin-bottom: 0.8rem; padding: 0.6rem 0.9rem; background: rgba(15, 23, 42, 0.45); border-radius: 8px; border: 1px solid rgba(51, 65, 85, 0.5);">
+              <span>🏛️ <b>Entidades:</b> <span style="color: #F1F5F9;">{caso_actual.get('entidades', '')}</span></span>
+              <span>📅 <b>Fecha consulta:</b> <span style="color: #F1F5F9;">{caso_actual.get('fecha_consulta', '')}</span></span>
             </div>
             """,
             unsafe_allow_html=True,
         )
+
+        # Botones interactivos con enlaces directos a las fuentes oficiales
+        fuentes = caso_actual.get("fuentes", [])
+        if not fuentes and "fuente" in caso_actual:
+            fuentes = [{"nombre": caso_actual["fuente"], "url": caso_actual.get("fuente_url", "#")}]
+
+        if fuentes:
+            st.caption("Fuentes oficiales consultadas (haz clic para abrir en pestaña nueva):")
+            cols_btn = st.columns(len(fuentes))
+            for i, f in enumerate(fuentes):
+                with cols_btn[i]:
+                    st.link_button(
+                        label=f"🌐 {f['nombre']}",
+                        url=f["url"],
+                        use_container_width=True,
+                    )
     with c2:
         st.caption("Temas integrados (Rúbrica):")
         for t in caso_actual["temas"]:

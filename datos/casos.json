@@ -7,8 +7,18 @@
       "categoria": "Vehículo y Consumo",
       "temas": ["Equivalencia de Tasas", "Series Uniformes", "Sistemas de Amortización"],
       "entidades": "Sufi (Grupo Bancolombia) vs. Banco Davivienda",
-      "fuente": "Simulador Oficial de Crédito de Vehículo Sufi y Tarifario de Consumo Davivienda",
+      "fuente": "Simulador Oficial de Crédito de Vehículo Sufi y Tarifario Davivienda",
       "fuente_url": "https://simulador.sufi.apps.bancolombia.com/",
+      "fuentes": [
+        {
+          "nombre": "Simulador Oficial Sufi (Bancolombia)",
+          "url": "https://simulador.sufi.apps.bancolombia.com/"
+        },
+        {
+          "nombre": "Tarifario Crédito Vehículo Davivienda",
+          "url": "https://www.davivienda.com/wps/portal/personas/nuevo/personas/aqui_puedo/solicitar_credito/credito_vehiculo"
+        }
+      ],
       "fecha_consulta": "24 de octubre de 2026",
       "parametros": {
         "monto": 35000000,
@@ -38,6 +48,16 @@
       "entidades": "Bancolombia (CDT Físico) vs. Nu Colombia / Lulo Bank (Cajitas de Ahorro)",
       "fuente": "Simulador CDT Físico Bancolombia y Tarifario Oficial de Tasas Nu Colombia",
       "fuente_url": "https://www.bancolombia.com/personas/productos-servicios/inversiones/cdts/fisicos/simulador-cdt",
+      "fuentes": [
+        {
+          "nombre": "Simulador CDT Físico Bancolombia",
+          "url": "https://www.bancolombia.com/personas/productos-servicios/inversiones/cdts/fisicos/simulador-cdt"
+        },
+        {
+          "nombre": "Tarifario Cuenta Nu Colombia (12% E.A.)",
+          "url": "https://nu.com.co/cuenta/"
+        }
+      ],
       "fecha_consulta": "24 de octubre de 2026",
       "parametros": {
         "capital": 20000000,
@@ -57,6 +77,12 @@
       "entidades": "Fiduciaria Bancolombia (Fondo de Inversión Colectiva / Fiducuenta)",
       "fuente": "Ficha Técnica Fondo de Inversión Colectiva Abierto - Fiduciaria Bancolombia",
       "fuente_url": "https://www.bancolombia.com/personas/productos-servicios/inversiones/fondos-inversion-colectiva",
+      "fuentes": [
+        {
+          "nombre": "Ficha Técnica FIC Abierto Bancolombia",
+          "url": "https://www.bancolombia.com/personas/productos-servicios/inversiones/fondos-inversion-colectiva"
+        }
+      ],
       "fecha_consulta": "24 de octubre de 2026",
       "parametros": {
         "a1": 500000,
