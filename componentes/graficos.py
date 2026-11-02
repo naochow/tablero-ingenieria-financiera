@@ -23,7 +23,7 @@ def _aplicar_estilo(fig, titulo, eje_x, eje_y, unidad):
         title={
             "text": f"<b>{titulo}</b>",
             "x": 0.01,
-            "font": {"size": 16, "color": "#FFFFFF", "family": "Inter, sans-serif"},
+            "font": {"size": 15, "color": "#FFFFFF", "family": "Inter, sans-serif"},
         },
         font={"family": "Inter, sans-serif", "color": "#94A3B8"},
         paper_bgcolor="rgba(15, 23, 42, 0.4)",
@@ -35,10 +35,10 @@ def _aplicar_estilo(fig, titulo, eje_x, eje_y, unidad):
             "bordercolor": "#334155",
             "font": {"family": "JetBrains Mono, monospace", "color": "#F8FAFC", "size": 12},
         },
-        legend={"orientation": "h", "y": 1.05, "yanchor": "bottom", "x": 0, "font": {"color": "#CBD5E1"}},
-        margin={"l": 15, "r": 15, "t": 65, "b": 15},
-        bargap=0.3,
-        barcornerradius=6,
+        legend={"orientation": "h", "y": -0.22, "yanchor": "top", "x": 0.5, "xanchor": "center", "font": {"color": "#CBD5E1"}},
+        margin={"l": 75, "r": 20, "t": 48, "b": 60},
+        bargap=0.25,
+        barcornerradius=4,
     )
     fig.update_xaxes(
         title=eje_x,
@@ -97,17 +97,21 @@ def grafico_lineas(x, series, titulo, eje_x, eje_y, unidad="COP", etiquetas_fina
 def grafico_barras(x, series, titulo, eje_x, eje_y, unidad="COP", apiladas=False):
     """Barras para flujos; apiladas=True para la composición (capital e intereses)."""
     fig = go.Figure()
+    muchos_periodos = len(x) > 30
+    ancho_borde = 0 if muchos_periodos else 1
+    gap_barras = 0.02 if muchos_periodos else 0.25
+
     for serie in series:
         fig.add_trace(
             go.Bar(
                 x=x,
                 y=serie["y"],
                 name=serie["nombre"],
-                marker={"color": serie["color"], "line": {"color": "rgba(255, 255, 255, 0.15)", "width": 1}},
+                marker={"color": serie["color"], "line": {"color": "rgba(255, 255, 255, 0.15)", "width": ancho_borde}},
                 hovertemplate=_hover(serie["nombre"], unidad),
             )
         )
-    fig.update_layout(barmode="stack" if apiladas else "group")
+    fig.update_layout(barmode="stack" if apiladas else "group", bargap=gap_barras)
     return _aplicar_estilo(fig, titulo, eje_x, eje_y, unidad)
 
 

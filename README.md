@@ -26,7 +26,7 @@ Permite simular, comparar y resolver problemas financieros de la banca y econom�
 ### 2. Módulos Temáticos
 1. **[Interés Simple](paginas/interes_simple.py):** Capitalización lineal, despejes de variables ($P, VF, i, n$), ecuaciones de valor y comparación de año comercial ($360$ días) vs. exacto ($365$ días).
 2. **[Interés Compuesto](paginas/interes_compuesto.py):** Valor del dinero en el tiempo, capitalización compuesta, regla del tiempo de duplicación y frecuencias de capitalización.
-3. **[Rentabilidad y Tasas](paginas/rentabilidad_tasas.py):** Conversor multidireccional: Efectiva Anual (EA), Nominales (NAMV, NATV, etc.), Periódicas vencidas y anticipadas, retención en la fuente (4%), tasas combinadas (IPC + spread) y tasa real de Fisher.
+3. **[Rentabilidad y Tasas](paginas/rentabilidad_tasas.py):** Conversor multidireccional: Efectiva Anual (EA), Nominales (NAMV, NATV, etc.), Periódicas vencidas y anticipadas, retención en la fuente (4% CDT / 7% cuentas de ahorro), tasas combinadas (IPC + spread) y tasa real de Fisher.
 4. **[Series Uniformes (Anualidades)](paginas/series_uniformes.py):** Anualidades vencidas y anticipadas, cálculo de cuota ($A$), valor presente ($VP$), valor futuro ($VF$) y diagramas de flujo de caja.
 5. **[Gradientes](paginas/gradientes.py):** Flujos variables periódicos aritméticos ($+G$ pesos) y geométricos ($+g\%$), cálculo de cuota fija equivalente ($A_{eq}$) y punto de cruce.
 6. **[Amortización](paginas/amortizacion.py):** Tablas de amortización con metodología UPB:
@@ -34,7 +34,6 @@ Permite simular, comparar y resolver problemas financieros de la banca y econom�
    * Sistema Alemán (Abono constante a capital).
    * Periodos de gracia con pago de intereses (parcial) y sin pago de intereses (capitalización total).
    * Pagos extras programados periódicos y abonos extraordinarios puntuales.
-   * Sistema colombiano en UVR (Ley de Vivienda 546 de 1999).
    * Comprobación por ecuación de valor (`Vr. cuotas mes 0`).
 
 ### 3. Casos Prácticos Aplicados

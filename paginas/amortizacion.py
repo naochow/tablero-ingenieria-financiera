@@ -32,6 +32,18 @@ PERIODO = {
     "anual": "año",
 }
 
+PLURAL_PERIODO = {
+    "diaria": "días",
+    "mensual": "meses",
+    "bimestral": "bimestres",
+    "trimestral": "trimestres",
+    "semestral": "semestres",
+    "anual": "años",
+}
+
+def p_md(v, d=0):
+    return pesos(v, d).replace("$", r"\$")
+
 EJEMPLOS = {
     "Clase: Vivienda $336M Cuota Fija (180 meses)": {
         "am_sistema": "frances",
@@ -123,7 +135,18 @@ explicar = estilos.encabezado(
     "Modelos de Amortización",
     "Modelos de cuota fija y abono constante a capital con periodos de gracia y pagos extras programados (Metodología de clase UPB).",
 )
-entradas.botones_ejemplos(EJEMPLOS)
+
+def _al_cambiar_ejemplo():
+    sel = st.session_state.get("am_ejemplo_sel")
+    if sel and sel in EJEMPLOS:
+        entradas._cargar_ejemplo(EJEMPLOS[sel])
+
+st.selectbox(
+    "Cargar caso de estudio de clase UPB:",
+    ["-- Parámetros actuales / Personalizado --"] + list(EJEMPLOS.keys()),
+    key="am_ejemplo_sel",
+    on_change=_al_cambiar_ejemplo,
+)
 
 col_datos, col_resultados = st.columns([1, 2], gap="large")
 
@@ -148,78 +171,77 @@ with col_datos, estilos.tarjeta("am_datos"):
     )
     n = int(entradas.campo_numero("Total de periodos (n)", "am_n", 180, minimo=1))
 
-    st.divider()
-    st.subheader("Periodo de gracia")
-    modalidad_gracia = entradas.campo_opcion(
-        "Tipo de gracia",
-        list(amortizacion.MODALIDADES_GRACIA),
-        "am_modalidad_gracia",
-        "ninguno",
-        amortizacion.MODALIDADES_GRACIA,
-    )
-    if modalidad_gracia != "ninguno":
-        max_gracia = max(1, n - 1)
-        periodos_gracia = int(
-            entradas.campo_numero(
-                "Cuotas de gracia (meses)",
-                "am_periodos_gracia",
-                12,
-                minimo=1,
-            )
+    # Gracia y Extras en expander para evitar espacio vacío a la derecha
+    with st.expander("⏳ Periodo de Gracia (Opcional)", expanded=False):
+        modalidad_gracia = entradas.campo_opcion(
+            "Tipo de gracia",
+            list(amortizacion.MODALIDADES_GRACIA),
+            "am_modalidad_gracia",
+            "ninguno",
+            amortizacion.MODALIDADES_GRACIA,
         )
-        if periodos_gracia >= n:
-            st.warning("El periodo de gracia debe ser menor al plazo total.")
-            periodos_gracia = n - 1
-        st.caption(f"Nuevo periodo de amortización efectiva: **{n - periodos_gracia} cuotas**.")
-    else:
-        periodos_gracia = 0
-
-    st.divider()
-    st.subheader("Pagos extras / Abonos extraordinarios")
-    tipo_pago_extra = entradas.campo_opcion(
-        "Modalidad de pagos extras",
-        list(amortizacion.TIPOS_PAGO_EXTRA),
-        "am_tipo_pago_extra",
-        "ninguno",
-        amortizacion.TIPOS_PAGO_EXTRA,
-    )
-
-    frecuencia_extra = 6
-    monto_extra_periodico = 0.0
-    abono_puntual_periodo = 0
-    abono_puntual_monto = 0.0
-    efecto_puntual = "reducir_plazo"
-
-    if tipo_pago_extra == "periodico":
-        c_p1, c_p2 = st.columns(2)
-        with c_p1:
-            frecuencia_extra = int(
-                entradas.campo_numero("Cada cuántos meses", "am_frecuencia_extra", 6, minimo=1, maximo=max(1, n - 1))
+        if modalidad_gracia != "ninguno":
+            max_gracia = max(1, n - 1)
+            periodos_gracia = int(
+                entradas.campo_numero(
+                    "Cuotas de gracia",
+                    "am_periodos_gracia",
+                    12,
+                    minimo=1,
+                )
             )
-        with c_p2:
-            monto_extra_periodico = entradas.campo_dinero(
-                "Valor cuota extra", "am_monto_extra_periodico", 2_000_000, minimo=10_000
-            )
-        total_extras_estimadas = n // frecuencia_extra
-        st.caption(f"Total de cuotas extras programadas: **{total_extras_estimadas}** de {pesos(monto_extra_periodico)}.")
+            if periodos_gracia >= n:
+                st.warning("El periodo de gracia debe ser menor al plazo total.")
+                periodos_gracia = n - 1
+            st.caption(f"Nuevo periodo de amortización efectiva: **{n - periodos_gracia} cuotas**.")
+        else:
+            periodos_gracia = 0
 
-    elif tipo_pago_extra == "puntual":
-        c_u1, c_u2 = st.columns(2)
-        with c_u1:
-            abono_puntual_periodo = int(
-                entradas.campo_numero("En el periodo", "am_abono_puntual_periodo", min(6, n), minimo=1, maximo=n)
-            )
-        with c_u2:
-            abono_puntual_monto = entradas.campo_dinero(
-                "Monto abono puntual", "am_abono_puntual_monto", 5_000_000, minimo=10_000
-            )
-        efecto_puntual = entradas.campo_opcion(
-            "Efecto del abono puntual",
-            list(amortizacion.EFECTOS_PUNTUAL),
-            "am_efecto_puntual",
-            "reducir_plazo",
-            amortizacion.EFECTOS_PUNTUAL,
+    with st.expander("💰 Pagos Extras / Abonos Extraordinarios (Opcional)", expanded=False):
+        tipo_pago_extra = entradas.campo_opcion(
+            "Modalidad de pagos extras",
+            list(amortizacion.TIPOS_PAGO_EXTRA),
+            "am_tipo_pago_extra",
+            "ninguno",
+            amortizacion.TIPOS_PAGO_EXTRA,
         )
+
+        frecuencia_extra = 6
+        monto_extra_periodico = 0.0
+        abono_puntual_periodo = 0
+        abono_puntual_monto = 0.0
+        efecto_puntual = "reducir_plazo"
+
+        if tipo_pago_extra == "periodico":
+            c_p1, c_p2 = st.columns(2)
+            with c_p1:
+                frecuencia_extra = int(
+                    entradas.campo_numero("Cada cuántos meses", "am_frecuencia_extra", 6, minimo=1, maximo=max(1, n - 1))
+                )
+            with c_p2:
+                monto_extra_periodico = entradas.campo_dinero(
+                    "Valor cuota extra", "am_monto_extra_periodico", 2_000_000, minimo=10_000
+                )
+            total_extras_estimadas = n // frecuencia_extra
+            st.caption(f"Total de cuotas extras programadas: **{total_extras_estimadas}** de {pesos(monto_extra_periodico)}.")
+
+        elif tipo_pago_extra == "puntual":
+            c_u1, c_u2 = st.columns(2)
+            with c_u1:
+                abono_puntual_periodo = int(
+                    entradas.campo_numero("En el periodo", "am_abono_puntual_periodo", min(6, n), minimo=1, maximo=n)
+                )
+            with c_u2:
+                abono_puntual_monto = entradas.campo_dinero(
+                    "Monto abono puntual", "am_abono_puntual_monto", 5_000_000, minimo=10_000
+                )
+            efecto_puntual = entradas.campo_opcion(
+                "Efecto del abono puntual",
+                list(amortizacion.EFECTOS_PUNTUAL),
+                "am_efecto_puntual",
+                "reducir_plazo",
+                amortizacion.EFECTOS_PUNTUAL,
+            )
 
 # Tasa periódica vencida
 m_anos = tasas.PERIODOS_POR_ANO[periodicidad_flujo]
@@ -260,7 +282,7 @@ with col_resultados:
     with k3:
         estilos.tarjeta_kpi("account_balance_wallet", pesos(resumen["total_pagado"]), "Total desembolsado", TEMA)
     with k4:
-        estilos.tarjeta_kpi("calendar_today", f"{resumen['plazo_efectivo']} {periodo}s", "Plazo efectivo", TEMA)
+        estilos.tarjeta_kpi("calendar_today", f"{resumen['plazo_efectivo']} {PLURAL_PERIODO.get(periodicidad_flujo, 'periodos')}", "Plazo efectivo", TEMA)
 
     # Explicación detallada de clase
     if explicar:
@@ -325,9 +347,9 @@ with col_resultados:
     if modalidad_gracia == "ninguno" and tipo_pago_extra == "ninguno":
         with estilos.tarjeta("am_comparativa"):
             st.markdown(
-                f"**Comparativa directa de clase:** Con Cuota Fija pagas **{pesos(comp['frances']['total_intereses'])}** "
-                f"en intereses vs **{pesos(comp['aleman']['total_intereses'])}** en Abono Constante a Capital "
-                f"(Ahorro de **{pesos(comp['diferencia_intereses'])}** en intereses)."
+                f"**Comparativa directa de clase:** Con Cuota Fija pagas **{p_md(comp['frances']['total_intereses'])}** "
+                f"en intereses vs **{p_md(comp['aleman']['total_intereses'])}** en Abono Constante a Capital "
+                f"(Ahorro de **{p_md(comp['diferencia_intereses'])}** en intereses)."
             )
 
 # Gráficos

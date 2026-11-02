@@ -93,26 +93,26 @@ with col_resultados:
             f"de abajo son la misma tasa escrita de otras formas."
         )
 
-    st.markdown("**Tabla de equivalencias**")
-    tabla = tasas.tabla_equivalencias(ea)
-    # VF de $1.000.000 a un año calculado desde cada tasa periódica, sin pasar por la EA
-    vf_vencidas = [MONTO_PRUEBA * (1 + f.periodica_vencida) ** f.periodos_por_ano for f in tabla.itertuples()]
-    vf_anticipadas = [MONTO_PRUEBA / (1 - f.periodica_anticipada) ** f.periodos_por_ano for f in tabla.itertuples()]
-    st.dataframe(
-        pd.DataFrame(
-            {
-                "Periodicidad": tabla["periodicidad"].str.capitalize(),
-                "Periodos/año": tabla["periodos_por_ano"],
-                "Periódica vencida": tabla["periodica_vencida"].map(lambda t: porcentaje(t, 4)),
-                "Nominal vencida": tabla["nominal_vencida"].map(lambda t: porcentaje(t, 4)),
-                "Periódica anticipada": tabla["periodica_anticipada"].map(lambda t: porcentaje(t, 4)),
-                "Nominal anticipada": tabla["nominal_anticipada"].map(lambda t: porcentaje(t, 4)),
-                f"VF de {pesos(MONTO_PRUEBA)}": [pesos(v, 2) for v in vf_vencidas],
-            }
-        ),
-        hide_index=True,
-        width="stretch",
-    )
+st.markdown("### Tabla de Equivalencias de Tasas")
+tabla = tasas.tabla_equivalencias(ea)
+# VF de $1.000.000 a un año calculado desde cada tasa periódica, sin pasar por la EA
+vf_vencidas = [MONTO_PRUEBA * (1 + f.periodica_vencida) ** f.periodos_por_ano for f in tabla.itertuples()]
+vf_anticipadas = [MONTO_PRUEBA / (1 - f.periodica_anticipada) ** f.periodos_por_ano for f in tabla.itertuples()]
+st.dataframe(
+    pd.DataFrame(
+        {
+            "Periodicidad": tabla["periodicidad"].str.capitalize(),
+            "Periodos/año": tabla["periodos_por_ano"],
+            "Periódica vencida": tabla["periodica_vencida"].map(lambda t: porcentaje(t, 4)),
+            "Nominal vencida": tabla["nominal_vencida"].map(lambda t: porcentaje(t, 4)),
+            "Periódica anticipada": tabla["periodica_anticipada"].map(lambda t: porcentaje(t, 4)),
+            "Nominal anticipada": tabla["nominal_anticipada"].map(lambda t: porcentaje(t, 4)),
+            f"VF de {pesos(MONTO_PRUEBA)}": [pesos(v, 2) for v in vf_vencidas],
+        }
+    ),
+    hide_index=True,
+    use_container_width=True,
+)
 
 vf_ea = MONTO_PRUEBA * (1 + ea)
 vf_mas_lejano = max(vf_vencidas + vf_anticipadas, key=lambda v: abs(v - vf_ea))

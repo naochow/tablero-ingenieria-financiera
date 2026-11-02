@@ -12,7 +12,7 @@ from finanzas import tasas
 
 _PREFIJO_PORCENTAJE = "_pct_"
 
-TIPOS_TASA = {"periodica": "Periódica", "nominal": "Nominal anual", "efectiva": "Efectiva anual"}
+TIPOS_TASA = {"periodica": "Periódica", "nominal": "Nominal", "efectiva": "Efectiva (EA)"}
 PERIODICIDADES = {p: p.capitalize() for p in tasas.PERIODOS_POR_ANO}
 MODALIDADES = {"vencida": "Vencida", "anticipada": "Anticipada"}
 

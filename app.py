@@ -68,9 +68,9 @@ with st.sidebar:
         <div style="padding-top: 1.2rem; border-top: 1px solid #1E293B; margin-top: 1.5rem; font-size: 0.75rem; color: #94A3B8;">
           <div style="margin-bottom: 0.35rem;">Docente: <strong style="color: #F1F5F9;">Adriana Arango L.</strong></div>
           <div style="margin-bottom: 0.45rem;">Equipo: <strong style="color: #E2E8F0;">Naomi Chow & Daniel Lopez</strong></div>
-          <div style="display: flex; align-items: center; gap: 0.45rem; color: #34D399; font-size: 0.72rem; font-family: 'JetBrains Mono', monospace;">
+          <div style="display: flex; align-items: center; gap: 0.45rem; color: #34D399; font-size: 0.72rem; font-family: 'Inter', sans-serif;">
             <span style="display: inline-block; width: 7px; height: 7px; border-radius: 50%; background-color: #10B981; box-shadow: 0 0 8px #10B981;"></span>
-            <span>Motor Financiero Activo (v2.4)</span>
+            <span>Sistema Verificado • Semestre 2026-2</span>
           </div>
         </div>
         """,
