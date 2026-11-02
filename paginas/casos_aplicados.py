@@ -31,8 +31,12 @@ FALLBACK_INFO = {
                 "url": "https://simulador.sufi.apps.bancolombia.com/",
             },
             {
-                "nombre": "Tarifario Crédito Vehículo Davivienda",
-                "url": "https://www.davivienda.com/wps/portal/personas/nuevo/personas/aqui_puedo/solicitar_credito/credito_vehiculo",
+                "nombre": "Simulador Vehículo Davivienda",
+                "url": "https://misfinanzasencasa.davivienda.com/finanzas-personales/simuladores/simulador-de-credito-de-vehiculo/",
+            },
+            {
+                "nombre": "Tasas Oficiales Davivienda",
+                "url": "https://www.davivienda.com/tasas-y-tarifas",
             },
         ],
     },
