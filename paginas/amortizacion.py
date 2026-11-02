@@ -410,20 +410,35 @@ st.download_button(
 
 # Verificación matemática
 st.subheader("Verificación")
-tarjeta_verificacion(
-    "Valor Presente: suma de 'Vr. cuotas mes 0' contra Capital inicial",
-    resumen["suma_vr_cuotas_mes_0"],
-    monto,
-    "Suma descontada a t=0 (Ecuación de valor)",
-)
+col_v1, col_v2, col_v3 = st.columns(3)
 
-tarjeta_verificacion(
-    "Saldo extinguido al final del plazo",
-    filas[-1]["saldo_final"],
-    0.0,
-    "Saldo periodo final",
-    tolerancia=1e-2,
-)
+with col_v1:
+    tarjeta_verificacion(
+        "Saldo extinguido a cero",
+        filas[-1]["saldo_final"],
+        0.0,
+        "Saldo final (t=n)",
+        tolerancia=1e-2,
+    )
+
+with col_v2:
+    monto_a_amortizar = monto if modalidad_gracia != "sin_interes" else filas[periodos_gracia]["saldo_final"]
+    tarjeta_verificacion(
+        "Suma de abonos a capital",
+        sum(f["total_abono"] for f in filas[1:]),
+        monto_a_amortizar,
+        "Capital prestado",
+        tolerancia=1.0,
+    )
+
+with col_v3:
+    tarjeta_verificacion(
+        "Ecuación de valor (t=0)",
+        resumen["suma_vr_cuotas_mes_0"],
+        monto,
+        "Suma descontada Vr. cuotas mes 0",
+        tolerancia=1.0,
+    )
 
 with st.expander("Fórmulas usadas en clase"):
     st.markdown("**1. Cuota fija (Francés):**")

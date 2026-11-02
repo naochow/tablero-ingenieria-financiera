@@ -151,8 +151,8 @@ with col_combinada, estilos.tarjeta("rt_combinada"):
 with col_retencion, estilos.tarjeta("rt_retencion"):
     st.markdown("**Retención en la fuente sobre los intereses**")
     retencion = entradas.campo_tasa(
-        "Retención", "rt_retencion", 0.07, maximo=1.0,
-        ayuda="Valor por defecto 7%, pendiente de confirmar el vigente.",
+        "Retención", "rt_retencion", 0.04, maximo=1.0,
+        ayuda="Tarifa general del 4,0% para rendimientos financieros según Estatuto Tributario Art. 395.",
     )
     neta = tasas.tea_neta(ea, retencion)
     estilos.tarjeta_kpi("receipt_long", tasa_con_codigo(neta, "EA", 4), "TEA neta después de retención", TEMA)

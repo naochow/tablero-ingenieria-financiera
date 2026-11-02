@@ -6,6 +6,10 @@
       "descripcion": "Compra de vehículo por $35.000.000 COP a 48 meses. Comparación de cotizaciones en Mes Vencido (MV) y Nominal Anual Mes Vencido (NAMV), modelado de cuotas y evaluación de sistemas Francés vs. Alemán.",
       "categoria": "Vehículo y Consumo",
       "temas": ["Equivalencia de Tasas", "Series Uniformes", "Sistemas de Amortización"],
+      "entidades": "Sufi (Grupo Bancolombia) vs. Banco Davivienda",
+      "fuente": "Simulador Oficial de Crédito de Vehículo Sufi y Tarifario de Consumo Davivienda",
+      "fuente_url": "https://simulador.sufi.apps.bancolombia.com/",
+      "fecha_consulta": "24 de octubre de 2026",
       "parametros": {
         "monto": 35000000,
         "plazo_meses": 48,
@@ -14,13 +18,13 @@
             "entidad": "Sufi (Bancolombia)",
             "tasa_valor": 0.0165,
             "codigo_tasa": "MV",
-            "descripcion": "1,65% Mes Vencido (MV)"
+            "descripcion": "1,65% Mes Vencido (MV) = 21,70% E.A."
           },
           {
             "entidad": "Davivienda",
             "tasa_valor": 0.2050,
             "codigo_tasa": "NAMV",
-            "descripcion": "20,50% Nominal Anual Mes Vencido (NAMV)"
+            "descripcion": "20,50% Nominal Anual Mes Vencido (NAMV) = 22,54% E.A."
           }
         ]
       }
@@ -31,6 +35,10 @@
       "descripcion": "Comparación de alternativas de inversión de capital: CDT tradicional a tasa fija vs. Cuenta de alto rendimiento (Nu/Lulo). Evaluación de interés simple vs. compuesto, retención en la fuente (4%) y rentabilidad real neta de inflación.",
       "categoria": "Inversión y Rentabilidad",
       "temas": ["Interés Simple vs. Compuesto", "Equivalencia de Tasas", "Retención en la Fuente", "Rentabilidad Real"],
+      "entidades": "Bancolombia (CDT Físico) vs. Nu Colombia / Lulo Bank (Cajitas de Ahorro)",
+      "fuente": "Simulador CDT Físico Bancolombia y Tarifario Oficial de Tasas Nu Colombia",
+      "fuente_url": "https://www.bancolombia.com/personas/productos-servicios/inversiones/cdts/fisicos/simulador-cdt",
+      "fecha_consulta": "24 de octubre de 2026",
       "parametros": {
         "capital": 20000000,
         "plazo_dias": 360,
@@ -46,6 +54,10 @@
       "descripcion": "Plan de ahorro a 36 meses en un fondo de inversión al 0,60% mensual vencido (MV), iniciando con $500.000 COP y aumentando progresivamente mediante gradiente aritmético (+ $25.000/mes) o geométrico (+ 2%/mes). Comparación con cuota fija equivalente.",
       "categoria": "Ahorro e Inversión",
       "temas": ["Gradiente Aritmético", "Gradiente Geométrico", "Cuota Uniforme Equivalente"],
+      "entidades": "Fiduciaria Bancolombia (Fondo de Inversión Colectiva / Fiducuenta)",
+      "fuente": "Ficha Técnica Fondo de Inversión Colectiva Abierto - Fiduciaria Bancolombia",
+      "fuente_url": "https://www.bancolombia.com/personas/productos-servicios/inversiones/fondos-inversion-colectiva",
+      "fecha_consulta": "24 de octubre de 2026",
       "parametros": {
         "a1": 500000,
         "plazo_meses": 36,

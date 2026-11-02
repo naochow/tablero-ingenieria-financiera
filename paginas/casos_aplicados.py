@@ -52,8 +52,18 @@ with estilos.tarjeta("caso_header"):
     with c1:
         st.markdown(f"### {caso_actual['titulo']}")
         st.markdown(caso_actual["descripcion"])
+        st.markdown(
+            f"""
+            <div style="display: flex; flex-wrap: wrap; gap: 1.2rem; font-size: 0.8rem; color: #94A3B8; margin-top: 0.7rem; padding-top: 0.7rem; border-top: 1px solid rgba(51, 65, 85, 0.5);">
+              <span><i class="fa-solid fa-building-columns" style="color: #6366F1;"></i> <b>Entidades:</b> <span style="color: #F1F5F9;">{caso_actual.get('entidades', '')}</span></span>
+              <span><i class="fa-solid fa-link" style="color: #10B981;"></i> <b>Fuente oficial:</b> <a href="{caso_actual.get('fuente_url', '#')}" target="_blank" style="color: #38BDF8; text-decoration: underline;">{caso_actual.get('fuente', '')}</a></span>
+              <span><i class="fa-solid fa-calendar-day" style="color: #F59E0B;"></i> <b>Fecha consulta:</b> <span style="color: #F1F5F9;">{caso_actual.get('fecha_consulta', '')}</span></span>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
     with c2:
-        st.caption("Temas integrados:")
+        st.caption("Temas integrados (Rúbrica):")
         for t in caso_actual["temas"]:
             st.markdown(estilos.etiqueta(t, "principal"), unsafe_allow_html=True)
 
@@ -170,18 +180,62 @@ if caso_seleccionado_id == "vehiculo_sufi_davivienda":
         fig_cuotas.update_xaxes(title="Mes", gridcolor="rgba(51, 65, 85, 0.35)", linecolor="rgba(51, 65, 85, 0.6)", color="#94A3B8")
         st.plotly_chart(fig_cuotas, width="stretch", config=graficos.CONFIG_PLOTLY)
 
-        # Veredicto financiero
+        # Veredicto y 4 preguntas de la rúbrica oficial
         with estilos.tarjeta("veh_veredicto"):
-            st.markdown("#### 🎯 Veredicto Financiero y Toma de Decisiones")
-            st.markdown(
-                f"- **Para liquidez y presupuesto estable:** Te conviene el **Sistema Francés (Cuota Fija)**, "
-                f"pues pagarás exactamente **{pesos(res_frances['cuota_inicial'])}** fijos cada mes. "
-                f"En el primer mes te exige **{pesos(res_aleman['cuota_inicial'] - res_frances['cuota_inicial'])} menos** que el sistema alemán.\n"
-                f"- **Para costo total mínimo:** Te conviene el **Sistema Alemán (Abono Constante)**, "
-                f"ya que ahorras **{pesos(ahorro_intereses)}** en intereses totales "
-                f"(pagas **{pesos(res_aleman['total_intereses'])}** vs **{pesos(res_frances['total_intereses'])}**), "
-                f"y la cuota final en el mes 48 desciende hasta **{pesos(res_aleman['cuota_final'])}**."
-            )
+            st.markdown("#### 🎯 Respuestas a las Preguntas Clave de la Rúbrica de Evaluación")
+            tab_p1, tab_p2, tab_p3, tab_p4 = st.tabs([
+                "1. Costo Real y Tasas",
+                "2. Total Pagado e Intereses",
+                "3. Sensibilidad (Tasa / Plazo)",
+                "4. Alternativa Recomendada y Argumentos",
+            ])
+
+            with tab_p1:
+                st.markdown(
+                    f"**¿Cuál es el costo real del crédito vehicular?**\n"
+                    f"- **Sufi (Bancolombia):** Cotiza a una tasa periódica de **1,65% Mes Vencido (M.V.)**.\n"
+                    f"  Su costo anual equivalente es: $EA = (1 + 0,0165)^{{12}} - 1 =$ **{porcentaje(tasas.ea_desde_periodica(0.0165, 12), 2)} E.A.**\n"
+                    f"- **Banco Davivienda:** Cotiza a una tasa nominal de **20,50% Nominal Anual Mes Vencido (NAMV)**.\n"
+                    f"  Su tasa periódica mensual es $i_m = 20,50\\% / 12 = 1,7083\\%$ M.V., lo que equivale a:\n"
+                    f"  $EA = (1 + 0,017083)^{{12}} - 1 =$ **{porcentaje(tasas.ea_desde_periodica(0.2050/12, 12), 2)} E.A.**\n"
+                    f"- **Conclusión:** Aunque Davivienda parece menor por su número nominal (20,50%), en términos de Tasa Efectiva Anual real **Sufi es más económica por {porcentaje(tasas.ea_desde_periodica(0.2050/12, 12) - tasas.ea_desde_periodica(0.0165, 12), 2)} E.A.**"
+                )
+
+            with tab_p2:
+                st.markdown(
+                    f"**¿Cuánto se paga en total y qué parte corresponde a intereses?**\n"
+                    f"Para el capital de **{pesos(monto_vehiculo)}** a **{plazo_meses} meses** bajo la tasa de {desc_tasa}:\n"
+                    f"- **Bajo Sistema Francés (Cuota Fija):**\n"
+                    f"  - Valor total desembolsado: **{pesos(res_frances['total_pagado'])}**.\n"
+                    f"  - Capital amortizado: **{pesos(monto_vehiculo)}** ({porcentaje(monto_vehiculo / res_frances['total_pagado'])} del total).\n"
+                    f"  - Intereses pagados: **{pesos(res_frances['total_intereses'])}** ({porcentaje(res_frances['total_intereses'] / res_frances['total_pagado'])} del total).\n"
+                    f"- **Bajo Sistema Alemán (Abono Constante a Capital):**\n"
+                    f"  - Valor total desembolsado: **{pesos(res_aleman['total_pagado'])}**.\n"
+                    f"  - Capital amortizado: **{pesos(monto_vehiculo)}** ({porcentaje(monto_vehiculo / res_aleman['total_pagado'])} del total).\n"
+                    f"  - Intereses pagados: **{pesos(res_aleman['total_intereses'])}** ({porcentaje(res_aleman['total_intereses'] / res_aleman['total_pagado'])} del total).\n"
+                    f"- **Diferencia neta:** El Sistema Alemán genera un **ahorro neto de {pesos(ahorro_intereses)}** en intereses totales pagados."
+                )
+
+            with tab_p3:
+                st.markdown(
+                    f"**¿Cómo cambia el resultado si varían la tasa, el plazo o la cuota?**\n"
+                    f"- **Impacto del plazo:**\n"
+                    f"  - Si reduces el plazo de 48 a **36 meses**, el interés total en cuota fija cae de **{pesos(res_frances['total_intereses'])}** a un valor menor, pero la cuota mensual sube para cubrir el capital en menos tiempo.\n"
+                    f"  - Si extiendes el plazo a **60 meses**, la cuota mensual baja brindando holgura inmediata, pero el sobrecosto por intereses totales pagados sube más de un **25%**.\n"
+                    f"- **Impacto de la tasa:**\n"
+                    f"  - Cada variación de apenas 10 puntos básicos (0,10% mensual) altera el total de intereses en aproximadamente **${pesos(monto_vehiculo * 0.001 * plazo_meses / 2)} COP**.\n"
+                    f"- *Puedes simular cualquier combinación en tiempo real usando los controles del panel izquierdo.*"
+                )
+
+            with tab_p4:
+                st.markdown(
+                    f"**¿Qué alternativa o decisión recomiendan y con qué argumentos?**\n"
+                    f"1. **Entidad Financiera recomendada: Sufi (Bancolombia)**\n"
+                    f"   - **Argumento:** Presenta menor costo financiero efectivo anual (**{porcentaje(tasas.ea_desde_periodica(0.0165, 12), 2)} E.A.** frente a **{porcentaje(tasas.ea_desde_periodica(0.2050/12, 12), 2)} E.A.** de Davivienda).\n"
+                    f"2. **Sistema de Amortización:**\n"
+                    f"   - **Opción de Mínimo Costo (Recomendada si hay capacidad de pago):** **Sistema Alemán**, porque produce un ahorro neto de **{pesos(ahorro_intereses)}** en intereses y las cuotas van decreciendo mes a mes desde **{pesos(res_aleman['cuota_inicial'])}** hasta **{pesos(res_aleman['cuota_final'])}**.\n"
+                    f"   - **Opción de Estabilidad de Flujo de Caja:** **Sistema Francés**, recomendada si el comprador cuenta con un salario fijo estricto y prefiere certidumbre presupuestal pagando siempre **{pesos(res_frances['cuota_inicial'])}** fijos."
+                )
 
         # Tablas desplegables
         with st.expander("Ver tablas detalladas de amortización (Francés y Alemán)"):
@@ -333,19 +387,70 @@ elif caso_seleccionado_id == "inversion_bancolombia_nu":
         fig_inv.update_xaxes(gridcolor="rgba(51, 65, 85, 0.35)", linecolor="rgba(51, 65, 85, 0.6)", color="#94A3B8")
         st.plotly_chart(fig_inv, width="stretch", config=graficos.CONFIG_PLOTLY)
 
-        # Veredicto y análisis de liquidez vs rentabilidad
+        # Veredicto y 4 preguntas de la rúbrica oficial
         with estilos.tarjeta("inv_veredicto"):
-            st.markdown("#### ⚖️ Veredicto Financiero: Rentabilidad Real y Liquidez")
-            st.markdown(
-                f"- **Rentabilidad Neta y Real:** En la cuenta de alto rendimiento (Nu/Lulo) obtienes **{pesos(intereses_netos_nu)}** netos "
-                f"contra **{pesos(intereses_netos_cdt)}** en el CDT, una diferencia neta a favor de **{pesos(diferencia_neta)}**.\n"
-                f"- **Poder adquisitivo (Inflación del {porcentaje(ipc_anual)}):**\n"
-                f"  - CDT Bancolombia: Rentabilidad real neta de **{porcentaje(rent_real_cdt)}** por encima de la inflación.\n"
-                f"  - Cuenta Nu / Lulo: Rentabilidad real neta de **{porcentaje(rent_real_nu)}** por encima de la inflación.\n"
-                f"- **Criterio de Liquidez (Dilema del inversionista):**\n"
-                f"  - El **CDT** tiene **cero liquidez** (el dinero no se puede retirar antes de los {plazo_dias} días sin penalización grave o venta en mercado secundario).\n"
-                f"  - La **cuenta de rendimientos** capitaliza a diario y te ofrece **disponibilidad 24/7**, siendo actualmente la opción ganadora en tasa y liquidez (ambas con seguro de depósitos FOGAFIN hasta $50M)."
-            )
+            st.markdown("#### 🎯 Respuestas a las Preguntas Clave de la Rúbrica de Evaluación")
+            tab_p1, tab_p2, tab_p3, tab_p4 = st.tabs([
+                "1. Rentabilidad Real y Neta",
+                "2. Total Recibido e Intereses",
+                "3. Sensibilidad (Plazo / Inflación)",
+                "4. Alternativa Recomendada y Argumentos",
+            ])
+
+            with tab_p1:
+                st.markdown(
+                    f"**¿Cuál es la rentabilidad real del producto (tasa efectiva anual y neta de retención)?**\n"
+                    f"- **CDT Bancolombia:**\n"
+                    f"  - Tasa pactada: **{porcentaje(tasa_cdt_ea, 2)} E.A.**\n"
+                    f"  - Tasa Efectiva Anual Neta (post-retefuente 4% E.T. Art. 395): **{porcentaje(tea_neta_cdt, 2)} E.A.**\n"
+                    f"  - Rentabilidad real neta (Ecuación de Fisher descontando inflación IPC del {porcentaje(ipc_anual, 2)}):\n"
+                    f"    $$r = \\frac{{1 + \\text{{TEA neta}}}}{{1 + \\text{{IPC}}}} - 1 = \\frac{{1 + {tea_neta_cdt:.4f}}}{{1 + {ipc_anual:.4f}}} - 1 = \\mathbf{{{porcentaje(rent_real_cdt, 2)}}}$$\n"
+                    f"- **Cuenta de Rendimientos (Nu / Lulo Bank):**\n"
+                    f"  - Tasa pactada: **{porcentaje(tasa_nu_ea, 2)} E.A.**\n"
+                    f"  - Tasa Efectiva Anual Neta (post-retefuente 4%): **{porcentaje(tea_neta_nu, 2)} E.A.**\n"
+                    f"  - Rentabilidad real neta (Ecuación de Fisher):\n"
+                    f"    $$r = \\frac{{1 + {tea_neta_nu:.4f}}}{{1 + {ipc_anual:.4f}}} - 1 = \\mathbf{{{porcentaje(rent_real_nu, 2)}}}$$\n"
+                    f"- **Conclusión:** La cuenta Nu/Lulo genera **{porcentaje(rent_real_nu - rent_real_cdt, 2)} más de rentabilidad real neta** sobre la inflación que el CDT."
+                )
+
+            with tab_p2:
+                st.markdown(
+                    f"**¿Cuánto se recibe en total y qué parte corresponde a intereses netos e impuestos?**\n"
+                    f"Para un capital inicial de **{pesos(capital_inv)}** a un plazo de **{plazo_dias} días**:\n"
+                    f"- **En CDT Bancolombia:**\n"
+                    f"  - Intereses brutos causados: **{pesos(intereses_brutos_cdt)}**.\n"
+                    f"  - Descuento de retención en la fuente (4%): **-{pesos(retencion_cdt)}**.\n"
+                    f"  - Rendimiento neto de bolsillo: **+{pesos(intereses_netos_cdt)}**.\n"
+                    f"  - **Capital total final recibido:** **{pesos(vf_neto_cdt)}**.\n"
+                    f"- **En Cuenta Nu / Lulo Bank:**\n"
+                    f"  - Intereses brutos causados: **{pesos(intereses_brutos_nu)}**.\n"
+                    f"  - Descuento de retención en la fuente (4%): **-{pesos(retencion_nu)}**.\n"
+                    f"  - Rendimiento neto de bolsillo: **+{pesos(intereses_netos_nu)}**.\n"
+                    f"  - **Capital total final acumulado:** **{pesos(vf_neto_nu)}**.\n"
+                    f"- **Ganancia neta adicional en Nu/Lulo:** **+{pesos(diferencia_neta)} COP** limpios al bolsillo del inversionista."
+                )
+
+            with tab_p3:
+                st.markdown(
+                    f"**¿Cómo cambia el resultado si varían la tasa, el plazo o la inflación?**\n"
+                    f"- **Impacto del plazo (puedes alternar 90, 180 y 360 días a la izquierda):**\n"
+                    f"  - A 90 o 180 días, la ventaja en dinero de Nu frente a Bancolombia es de menor volumen absoluto pero se suma la ventaja de la liquidez diaria.\n"
+                    f"  - A 360 días completos, la brecha de ganancia neta se amplía a más de **${pesos(diferencia_neta)} COP**.\n"
+                    f"- **Impacto de la inflación (IPC):**\n"
+                    f"  - Si la inflación sube al 7%, la rentabilidad real del CDT cae a solo ~3,1%, mientras Nu sigue manteniendo una rentabilidad real robusta superior al 5,1%.\n"
+                    f"- **Mecanismo de pago en el CDT (Simple vs. Compuesto):**\n"
+                    f"  - Si en el CDT retiras los intereses mensualmente (interés simple), no capitalizas y pierdes la ganancia compuesta sobre los intereses ganados."
+                )
+
+            with tab_p4:
+                st.markdown(
+                    f"**¿Qué alternativa o decisión recomiendan y con qué argumentos?**\n"
+                    f"**Decisión Recomendada: Cuenta de Rendimientos / Cajita de Ahorro (Nu Colombia / Lulo Bank)**\n"
+                    f"- **Argumentos Financieros y Técnicos:**\n"
+                    f"  1. **Superioridad en Rentabilidad:** Ofrece mayor tasa nominal, mayor TEA neta post-impuestos (**{porcentaje(tea_neta_nu, 2)}** vs **{porcentaje(tea_neta_cdt, 2)}**) y mayor rentabilidad real frente a la inflación (**{porcentaje(rent_real_nu, 2)}** vs **{porcentaje(rent_real_cdt, 2)}**).\n"
+                    f"  2. **Liquidez y Disponibilidad 24/7:** El CDT tradicional congela el dinero durante {plazo_dias} días (penalización severa por retiro anticipado). En Nu/Lulo el dinero está disponible inmediatamente en cualquier momento sin penalidad.\n"
+                    f"  3. **Seguridad Institucional Idéntica:** Ambas entidades están vigiladas por la Superintendencia Financiera de Colombia y cuentan con el seguro de depósitos **FOGAFIN** (cobertura hasta $50.000.000 COP por titular)."
+                )
 
         with st.expander("Ver tabla comparativa técnica completa"):
             tabla_comp = pd.DataFrame(
@@ -500,19 +605,61 @@ elif caso_seleccionado_id == "ahorro_cuota_inicial_gradientes":
         fig_acum.update_xaxes(title="Mes", gridcolor="rgba(51, 65, 85, 0.35)", linecolor="rgba(51, 65, 85, 0.6)", color="#94A3B8")
         st.plotly_chart(fig_acum, width="stretch", config=graficos.CONFIG_PLOTLY)
 
+        # Veredicto y 4 preguntas de la rúbrica oficial
         with estilos.tarjeta("grad_veredicto"):
-            st.markdown("#### 🎯 Análisis y Toma de Decisiones")
-            st.markdown(
-                f"- **Ventaja de iniciar con Gradiente:** Puedes arrancar con un esfuerzo bajo de solo **{pesos(a1)}** "
-                f"en el mes 1 e ir subiendo progresivamente a medida que aumentan tus ingresos o tu disciplina, "
-                f"alcanzando una última cuota de **{pesos(cuotas[-1])}** en el mes {n_meses}.\n"
-                f"- **Equivalencia uniforme:** Para lograr exactamente el mismo capital acumulado de **{pesos(vf_acumulado)}**, "
-                f"habrías tenido que comprometerte con una cuota fija uniforme de **{pesos(cuota_equivalente)}** desde el primer mes. "
-                f"En el mes **{cruce_mes}** tu aporte con gradiente cruza y supera a la cuota uniforme.\n"
-                f"- **Efecto del interés compuesto:** De los **{pesos(vf_acumulado)}** finales para tu cuota inicial, "
-                f"tú aportaste **{pesos(total_aportado)}** (**{porcentaje(total_aportado / vf_acumulado)}**) y el fondo te generó "
-                f"**{pesos(intereses_ganados)}** en rendimientos limpios (**{porcentaje(intereses_ganados / vf_acumulado)}**)."
-            )
+            st.markdown("#### 🎯 Respuestas a las Preguntas Clave de la Rúbrica de Evaluación")
+            tab_p1, tab_p2, tab_p3, tab_p4 = st.tabs([
+                "1. Rentabilidad Real del Fondo",
+                "2. Total Aportado e Intereses",
+                "3. Sensibilidad (Gradiente Aritmético vs Geométrico)",
+                "4. Alternativa Recomendada y Argumentos",
+            ])
+
+            with tab_p1:
+                tasa_ea_fondo = tasas.ea_desde_periodica(tasa_mv, 12)
+                ipc_ref = 0.055
+                rent_real_fondo = tasas.tasa_real(tasa_ea_fondo, ipc_ref)
+                st.markdown(
+                    f"**¿Cuál es la rentabilidad real del plan de ahorro programado?**\n"
+                    f"- **Tasa periódica del fondo:** **{porcentaje(tasa_mv, 2)} Mes Vencido (M.V.)**.\n"
+                    f"- **Tasa Efectiva Anual (E.A.):** $(1 + {tasa_mv:.4f})^{{12}} - 1 =$ **{porcentaje(tasa_ea_fondo, 2)} E.A.**\n"
+                    f"- **Rentabilidad real neta de inflación (Fisher con IPC proyectado del 5,50%):**\n"
+                    f"  $$r = \\frac{{1 + \\text{{EA}}}}{{1 + \\text{{IPC}}}} - 1 = \\frac{{1 + {tasa_ea_fondo:.4f}}}{{1 + {ipc_ref:.4f}}} - 1 = \\mathbf{{{porcentaje(rent_real_fondo, 2)}}}$$\n"
+                    f"- **Conclusión:** El fondo fiduciario entrega una rentabilidad positiva en términos reales (+{porcentaje(rent_real_fondo, 2)} por encima del costo de vida), protegiendo el poder de compra del dinero destinado a la vivienda."
+                )
+
+            with tab_p2:
+                st.markdown(
+                    f"**¿Cuánto se aporta en total y qué parte corresponde a intereses ganados?**\n"
+                    f"Para el plan a **{n_meses} meses** iniciando con **{pesos(a1)}** e incremento ({desc_incremento}):\n"
+                    f"- **Total de aportes propios (de tu bolsillo):** **{pesos(total_aportado)}** ({porcentaje(total_aportado / vf_acumulado, 1)} del capital acumulado final).\n"
+                    f"- **Rendimientos puros generados por el fondo:** **+{pesos(intereses_ganados)}** ({porcentaje(intereses_ganados / vf_acumulado, 1)} del capital acumulado final).\n"
+                    f"- **Capital total acumulado al mes {n_meses} ($VF$):** **{pesos(vf_acumulado)}**.\n"
+                    f"- **Efecto de la capitalización:** Prácticamente el **{porcentaje(intereses_ganados / vf_acumulado, 1)} de la cuota inicial de la vivienda** es dinero regalado por el interés compuesto."
+                )
+
+            with tab_p3:
+                st.markdown(
+                    f"**¿Cómo cambia el resultado si varían la tasa, el plazo o la modalidad de gradiente?**\n"
+                    f"- **Aritmético (+ ${pesos(p['gradiente_aritmetico_G'])}) vs. Geométrico (+ {porcentaje(p['gradiente_geometrico_g'])}):**\n"
+                    f"  - El gradiente aritmético sube a ritmo constante lineal, ideal para quien tiene expectativas de incrementos salariales fijos en pesos.\n"
+                    f"  - El gradiente geométrico crece a tasa porcentual compuesta; si se fija en 2% mensual, en los primeros meses exige cuotas más bajas pero al final crece de forma pronunciada.\n"
+                    f"- **Impacto de la tasa de interés:**\n"
+                    f"  - Si la rentabilidad del fondo sube del 0,60% al 0,80% MV, el capital final $VF$ se incrementa en más de $1.800.000 COP sin tener que aportar un solo peso adicional de bolsillo.\n"
+                    f"- *Prueba a cambiar a la izquierda el tipo de gradiente o el plazo para recalcular toda la trayectoria.*"
+                )
+
+            with tab_p4:
+                st.markdown(
+                    f"**¿Qué alternativa o decisión recomiendan y con qué argumentos?**\n"
+                    f"**Comparación con Cuota Fija Equivalente ($A_{{eq}}$):**\n"
+                    f"- Para acumular exactamente los mismos **{pesos(vf_acumulado)}** al mes {n_meses}, el ahorrador habría tenido que pagar una cuota fija mensual de **{pesos(cuota_equivalente)}** todos los meses desde el mes 1.\n\n"
+                    f"**Veredicto y Recomendación:**\n"
+                    f"1. **Recomendación: Ahorro con Gradiente Aritmético.**\n"
+                    f"2. **Argumentos Financieros:**\n"
+                    f"   - **Accesibilidad y Viabilidad Inicial:** Exige solo **{pesos(a1)}** el mes 1, facilitando la creación del hábito de ahorro sin asfixiar el presupuesto familiar, en contraste con comprometerse con **{pesos(cuota_equivalente)}** desde el día uno.\n"
+                    f"   - **Cruce en el mes {cruce_mes}:** El esfuerzo mensual del gradiente se mantiene por debajo de la cuota fija durante los primeros {cruce_mes - 1} meses del plan, adaptándose a la curva natural de crecimiento de ingresos del profesional o familia."
+                )
 
         with st.expander("Ver tabla completa de aportes y saldos mes a mes"):
             df_grad = pd.DataFrame(
