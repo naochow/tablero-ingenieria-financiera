@@ -578,10 +578,6 @@ elif caso_seleccionado_id == "inversion_bancolombia_nu":
                     {"Concepto": "Liquidez del dinero", "CDT Bancolombia": f"Bloqueado {plazo_dias} días", "Nu / Lulo Bank": "Inmediata (24/7)"},
                 ]
             )
-                    {"Concepto": "Rentabilidad real neta (descontando IPC)", "CDT Bancolombia": porcentaje(rent_real_cdt), "Nu / Lulo Bank": porcentaje(rent_real_nu)},
-                    {"Concepto": "Liquidez del dinero", "CDT Bancolombia": f"Bloqueado {plazo_dias} días", "Nu / Lulo Bank": "Inmediata (24/7)"},
-                ]
-            )
             st.dataframe(tabla_comp, hide_index=True, width="stretch")
 
 # ==============================================================================

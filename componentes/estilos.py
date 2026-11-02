@@ -181,7 +181,7 @@ def aplicar_estilos(temas_por_ruta):
         }}
 
         /* Tarjeta KPI con gradiente y tipografía monospace */
-        .kpi {
+        .kpi {{
             background: linear-gradient(135deg, rgba(30, 41, 59, 0.75) 0%, rgba(15, 23, 42, 0.85) 100%) !important;
             border: 1px solid rgba(51, 65, 85, 0.6) !important;
             border-radius: 14px !important;
@@ -193,13 +193,13 @@ def aplicar_estilos(temas_por_ruta):
             justify-content: space-between !important;
             box-sizing: border-box !important;
             transition: all 0.2s ease-in-out !important;
-        }
-        .kpi:hover {
+        }}
+        .kpi:hover {{
             border-color: var(--color) !important;
             box-shadow: 0 0 16px rgba(99, 102, 241, 0.25) !important;
             transform: translateY(-2px);
-        }
-        .kpi-icono {
+        }}
+        .kpi-icono {{
             font-family: 'Material Symbols Rounded', 'Font Awesome 6 Free', sans-serif !important;
             font-size: 1.3rem !important;
             line-height: 1 !important;
@@ -212,13 +212,13 @@ def aplicar_estilos(temas_por_ruta):
             color: var(--color) !important;
             background: var(--suave) !important;
             border: 1px solid var(--color) !important;
-        }
-        .kpi-icono i, .kpi-icono [class*="fa-"] {
+        }}
+        .kpi-icono i, .kpi-icono [class*="fa-"] {{
             font-family: 'Font Awesome 6 Free' !important;
             font-weight: 900 !important;
             font-style: normal !important;
-        }
-        .kpi-valor {
+        }}
+        .kpi-valor {{
             font-family: 'JetBrains Mono', monospace !important;
             font-size: 1.35rem !important;
             font-weight: 700 !important;
@@ -229,18 +229,18 @@ def aplicar_estilos(temas_por_ruta):
             white-space: nowrap !important;
             overflow: hidden !important;
             text-overflow: ellipsis !important;
-        }
-        .kpi-etiqueta {
+        }}
+        .kpi-etiqueta {{
             font-size: 0.75rem !important;
             color: #94A3B8 !important;
             text-transform: uppercase !important;
             letter-spacing: 0.04em !important;
             font-weight: 600 !important;
             line-height: 1.25 !important;
-        }
+        }}
 
         /* Etiqueta tipo chip de fintech */
-        .etiqueta {
+        .etiqueta {{
             display: inline-block;
             padding: 0.25rem 0.65rem;
             border-radius: 9999px;
@@ -252,7 +252,7 @@ def aplicar_estilos(temas_por_ruta):
             white-space: normal;
             word-break: normal;
             line-height: 1.3;
-        }
+        }}
 
         /* Valores de intereses en ámbar brillante */
         .intereses {{ color: {INTERESES_TEXTO}; font-weight: 600; }}
@@ -418,17 +418,17 @@ def aplicar_estilos(temas_por_ruta):
             border-bottom: 1px solid #334155 !important;
             font-family: 'Inter', sans-serif !important;
         }}
-        td {
+        td {{
             background-color: #0B0F19 !important;
             color: #E2E8F0 !important;
             font-size: 0.82rem !important;
             padding: 0.7rem 1rem !important;
             border-bottom: 1px solid #1E293B !important;
             font-family: 'Inter', sans-serif !important;
-        }
-        td.mono, .mono {
+        }}
+        td.mono, .mono {{
             font-family: 'JetBrains Mono', monospace !important;
-        }
+        }}
         tr:hover td {{
             background-color: #1E293B !important;
         }}
