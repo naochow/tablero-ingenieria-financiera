@@ -3,7 +3,7 @@
     {
       "id": "vehiculo_sufi_davivienda",
       "titulo": "Caso 1: Crédito de Vehículo (Sufi vs. Davivienda)",
-      "descripcion": "Compra de vehículo por \\$35.000.000 COP a 48 meses. Comparación de cotizaciones en Mes Vencido (MV) y Nominal Anual Mes Vencido (NAMV), modelado de cuotas y evaluación de sistemas Francés vs. Alemán.",
+      "descripcion": "Compra de vehículo por \\$35.000.000 COP a 48 meses. Comparación de cotizaciones en Mes Vencido (MV) y Nominal Anual Mes Vencido (NAMV), modelado de cuotas y evaluación de sistemas Cuota fija vs. Abono constante.",
       "categoria": "Vehículo y Consumo",
       "temas": ["Equivalencia de Tasas", "Series Uniformes", "Sistemas de Amortización"],
       "entidades": "Sufi (Grupo Bancolombia) vs. Banco Davivienda",

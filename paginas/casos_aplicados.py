@@ -158,9 +158,9 @@ if caso_seleccionado_id == "vehiculo_sufi_davivienda":
 
         k1, k2, k3 = st.columns(3)
         with k1:
-            estilos.tarjeta_kpi("payments", pesos(res_frances["cuota_inicial"]), "Cuota fija (Francés)", "amortizacion")
+            estilos.tarjeta_kpi("payments", pesos(res_frances["cuota_inicial"]), "Cuota fija", "amortizacion")
         with k2:
-            estilos.tarjeta_kpi("trending_down", pesos(res_aleman["cuota_inicial"]), "1.ª cuota (Alemán)", "series_uniformes")
+            estilos.tarjeta_kpi("trending_down", pesos(res_aleman["cuota_inicial"]), "1.ª cuota (Abono constante)", "series_uniformes")
         with k3:
             estilos.tarjeta_kpi("savings", pesos(ahorro_intereses), f"Ahorro intereses ({porcentaje(ahorro_intereses / res_frances['total_intereses'])})", "principal")
 
@@ -174,7 +174,7 @@ if caso_seleccionado_id == "vehiculo_sufi_davivienda":
             go.Scatter(
                 x=periodos,
                 y=cuotas_f,
-                name="Cuota Fija (Francés)",
+                name="Cuota fija",
                 line={"color": COLOR_FRANCES, "width": 3},
             )
         )
@@ -182,12 +182,12 @@ if caso_seleccionado_id == "vehiculo_sufi_davivienda":
             go.Scatter(
                 x=periodos,
                 y=cuotas_a,
-                name="Abono Constante (Alemán)",
+                name="Abono constante",
                 line={"color": COLOR_ALEMAN, "width": 3, "dash": "dash"},
             )
         )
         fig_cuotas.update_layout(
-            title={"text": "<b>Evolución de las cuotas mensuales: Francés vs. Alemán</b>", "x": 0.01, "font": {"color": "#FFFFFF", "size": 15}},
+            title={"text": "<b>Evolución de las cuotas mensuales: Cuota fija vs. Abono constante</b>", "x": 0.01, "font": {"color": "#FFFFFF", "size": 15}},
             font={"family": "Inter, sans-serif", "color": "#94A3B8"},
             paper_bgcolor="rgba(15, 23, 42, 0.4)",
             plot_bgcolor="rgba(15, 23, 42, 0.4)",
@@ -246,15 +246,15 @@ if caso_seleccionado_id == "vehiculo_sufi_davivienda":
                 st.markdown(
                     f"**¿Cuánto se paga en total y qué parte corresponde a intereses?**\n"
                     f"Para el capital de **{pesos_md(monto_vehiculo)}** a **{plazo_meses} meses** bajo la tasa de {desc_tasa}:\n"
-                    f"- **Bajo Sistema Francés (Cuota Fija):**\n"
+                    f"- **Bajo Sistema de Cuota Fija:**\n"
                     f"  - Valor total desembolsado: **{pesos_md(res_frances['total_pagado'])}**.\n"
                     f"  - Capital amortizado: **{pesos_md(monto_vehiculo)}** ({porcentaje(monto_vehiculo / res_frances['total_pagado'])} del total).\n"
                     f"  - Intereses pagados: **{pesos_md(res_frances['total_intereses'])}** ({porcentaje(res_frances['total_intereses'] / res_frances['total_pagado'])} del total).\n"
-                    f"- **Bajo Sistema Alemán (Abono Constante a Capital):**\n"
+                    f"- **Bajo Sistema de Abono Constante a Capital:**\n"
                     f"  - Valor total desembolsado: **{pesos_md(res_aleman['total_pagado'])}**.\n"
                     f"  - Capital amortizado: **{pesos_md(monto_vehiculo)}** ({porcentaje(monto_vehiculo / res_aleman['total_pagado'])} del total).\n"
                     f"  - Intereses pagados: **{pesos_md(res_aleman['total_intereses'])}** ({porcentaje(res_aleman['total_intereses'] / res_aleman['total_pagado'])} del total).\n"
-                    f"- **Diferencia neta:** El Sistema Alemán genera un **ahorro neto de {pesos_md(ahorro_intereses)}** en intereses totales pagados."
+                    f"- **Diferencia neta:** El sistema de Abono Constante genera un **ahorro neto de {pesos_md(ahorro_intereses)}** en intereses totales pagados."
                 )
 
             with tab_p3:
@@ -295,15 +295,15 @@ if caso_seleccionado_id == "vehiculo_sufi_davivienda":
                     f"   - **Argumento:** Presenta menor costo financiero efectivo anual (**{porcentaje(oferta_barata['ea'], 2)} E.A.** frente a **{porcentaje(oferta_cara['ea'], 2)} E.A.** de {oferta_cara['entidad']}).\n"
                     f"   - **Precaución:** {notas_tasas} Conviene pedir una cotización vigente a ambas entidades antes de decidir.\n"
                     f"2. **Sistema de Amortización (con la tasa seleccionada: {desc_tasa}):**\n"
-                    f"   - **Opción de Mínimo Costo (Recomendada si hay capacidad de pago):** **Sistema Alemán**, porque produce un ahorro neto de **{pesos_md(ahorro_intereses)}** en intereses y las cuotas van decreciendo mes a mes desde **{pesos_md(res_aleman['cuota_inicial'])}** hasta **{pesos_md(res_aleman['cuota_final'])}**.\n"
-                    f"   - **Opción de Estabilidad de Flujo de Caja:** **Sistema Francés**, recomendada si el comprador cuenta con un salario fijo estricto y prefiere certidumbre presupuestal pagando siempre **{pesos_md(res_frances['cuota_inicial'])}** fijos."
+                    f"   - **Opción de Mínimo Costo (Recomendada si hay capacidad de pago):** **Abono constante a capital**, porque produce un ahorro neto de **{pesos_md(ahorro_intereses)}** en intereses y las cuotas van decreciendo mes a mes desde **{pesos_md(res_aleman['cuota_inicial'])}** hasta **{pesos_md(res_aleman['cuota_final'])}**.\n"
+                    f"   - **Opción de Estabilidad de Flujo de Caja:** **Cuota fija**, recomendada si el comprador cuenta con un salario fijo estricto y prefiere certidumbre presupuestal pagando siempre **{pesos_md(res_frances['cuota_inicial'])}** fijos."
                 )
 
         # Tablas desplegables
-        with st.expander("Ver tablas detalladas de amortización (Francés y Alemán)"):
+        with st.expander("Ver tablas detalladas de amortización (Cuota fija y Abono constante)"):
             t_col1, t_col2 = st.columns(2)
             with t_col1:
-                st.markdown("**Tabla Cuota Fija (Francés)**")
+                st.markdown("**Tabla Cuota Fija**")
                 df_f = pd.DataFrame(
                     [
                         {
@@ -318,7 +318,7 @@ if caso_seleccionado_id == "vehiculo_sufi_davivienda":
                 )
                 st.dataframe(df_f, hide_index=True, height=300, width="stretch")
             with t_col2:
-                st.markdown("**Tabla Abono Constante (Alemán)**")
+                st.markdown("**Tabla Abono Constante**")
                 df_a = pd.DataFrame(
                     [
                         {

@@ -257,8 +257,8 @@ with estilos.tarjeta("tabla_ejecutiva"):
                 <td>
                   <span style="color: #818CF8; font-weight: 600;">{porcentaje(c1_barata['ea'], 2)} E.A. {c1_barata['entidad']}</span> vs <span style="color: #94A3B8;">{porcentaje(c1_cara['ea'], 2)} {c1_cara['entidad']}</span>
                 </td>
-                <td>{_p_html(c1_total_frances)} (Francés) vs {_p_html(c1_total_aleman)} (Alemán)</td>
-                <td style="color: #FB7185; font-weight: 600;">-{_p_html(c1_int_frances)} COP (Francés)</td>
+                <td>{_p_html(c1_total_frances)} (Cuota fija) vs {_p_html(c1_total_aleman)} (Abono constante)</td>
+                <td style="color: #FB7185; font-weight: 600;">-{_p_html(c1_int_frances)} COP (Cuota fija)</td>
                 <td style="font-family: 'Inter', sans-serif;">
                   <span class="etiqueta" style="--oscuro: #6366F1; --suave: rgba(99, 102, 241, 0.15); border-color: rgba(99, 102, 241, 0.4); color: #A5B4FC; display: inline-block; white-space: nowrap;">
                     {c1_barata['entidad']}
@@ -441,7 +441,7 @@ with m_col3:
               </div>
               <div>
                 <h4 style="margin: 0; font-size: 0.95rem; color: #FFFFFF;">6. Tablas de Amortización</h4>
-                <p style="margin: 0; font-size: 0.75rem; color: #94A3B8;">Sistemas Francés vs Alemán</p>
+                <p style="margin: 0; font-size: 0.75rem; color: #94A3B8;">Cuota fija vs Abono constante</p>
               </div>
             </div>
             <p style="font-size: 0.8rem; color: #CBD5E1; min-height: 40px; margin-bottom: 0.8rem;">
