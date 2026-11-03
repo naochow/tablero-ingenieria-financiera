@@ -243,9 +243,31 @@ if caso_seleccionado_id == "vehiculo_sufi_davivienda":
                 )
 
             with tab_p2:
+                # Resumen comparativo de ambas entidades para el monto y plazo actuales
+                tabla_sufi_f = amortizacion.tabla_amortizacion(monto_vehiculo, ofertas["sufi"]["mv"], plazo_meses, sistema="frances")
+                tabla_sufi_a = amortizacion.tabla_amortizacion(monto_vehiculo, ofertas["sufi"]["mv"], plazo_meses, sistema="aleman")
+                res_sufi_f = amortizacion.resumen_amortizacion(tabla_sufi_f)
+                res_sufi_a = amortizacion.resumen_amortizacion(tabla_sufi_a)
+
+                tabla_davi_f = amortizacion.tabla_amortizacion(monto_vehiculo, ofertas["davivienda"]["mv"], plazo_meses, sistema="frances")
+                tabla_davi_a = amortizacion.tabla_amortizacion(monto_vehiculo, ofertas["davivienda"]["mv"], plazo_meses, sistema="aleman")
+                res_davi_f = amortizacion.resumen_amortizacion(tabla_davi_f)
+                res_davi_a = amortizacion.resumen_amortizacion(tabla_davi_a)
+
+                dif_total_f = res_sufi_f["total_pagado"] - res_davi_f["total_pagado"]
+                dif_total_a = res_sufi_a["total_pagado"] - res_davi_a["total_pagado"]
+
                 st.markdown(
-                    f"**¿Cuánto se paga en total y qué parte corresponde a intereses?**\n"
-                    f"Para el capital de **{pesos_md(monto_vehiculo)}** a **{plazo_meses} meses** bajo la tasa de {desc_tasa}:\n"
+                    f"**¿Cuánto se paga en total y qué parte corresponde a intereses?**\n\n"
+                    f"#### 📊 Comparativa de Desembolso Total: Davivienda vs. Sufi (Bancolombia)\n"
+                    f"Para el capital de **{pesos_md(monto_vehiculo)}** a **{plazo_meses} meses**:\n\n"
+                    f"| Entidad | Tasa Cotizada | Tasa E.A. | Cuota Fija Mensual | Total Pagado (Cuota Fija) | Intereses (Cuota Fija) | Total Pagado (Abono Constante) |\n"
+                    f"| :--- | :--- | :--- | :--- | :--- | :--- | :--- |\n"
+                    f"| **Davivienda** | {ofertas['davivienda']['descripcion']} | **{porcentaje(ofertas['davivienda']['ea'], 2)}** | **{pesos_md(res_davi_f['cuota_inicial'])}** | **{pesos_md(res_davi_f['total_pagado'])}** | {pesos_md(res_davi_f['total_intereses'])} | **{pesos_md(res_davi_a['total_pagado'])}** |\n"
+                    f"| **Sufi (Bancolombia)** | {ofertas['sufi']['descripcion']} | **{porcentaje(ofertas['sufi']['ea'], 2)}** | **{pesos_md(res_sufi_f['cuota_inicial'])}** | **{pesos_md(res_sufi_f['total_pagado'])}** | {pesos_md(res_sufi_f['total_intereses'])} | **{pesos_md(res_sufi_a['total_pagado'])}** |\n\n"
+                    f"- **Ahorro al elegir Davivienda:** En Cuota Fija, Davivienda genera un **ahorro de {pesos_md(dif_total_f)}** frente a Sufi (Bancolombia) debido a su menor tasa de interés (y de **{pesos_md(dif_total_a)}** en Abono Constante).\n\n"
+                    f"---\n\n"
+                    f"#### 🔍 Desglose Detallado de la Entidad Activa ({desc_tasa}):\n"
                     f"- **Bajo Sistema de Cuota Fija:**\n"
                     f"  - Valor total desembolsado: **{pesos_md(res_frances['total_pagado'])}**.\n"
                     f"  - Capital amortizado: **{pesos_md(monto_vehiculo)}** ({porcentaje(monto_vehiculo / res_frances['total_pagado'])} del total).\n"
@@ -254,7 +276,8 @@ if caso_seleccionado_id == "vehiculo_sufi_davivienda":
                     f"  - Valor total desembolsado: **{pesos_md(res_aleman['total_pagado'])}**.\n"
                     f"  - Capital amortizado: **{pesos_md(monto_vehiculo)}** ({porcentaje(monto_vehiculo / res_aleman['total_pagado'])} del total).\n"
                     f"  - Intereses pagados: **{pesos_md(res_aleman['total_intereses'])}** ({porcentaje(res_aleman['total_intereses'] / res_aleman['total_pagado'])} del total).\n"
-                    f"- **Diferencia neta:** El sistema de Abono Constante genera un **ahorro neto de {pesos_md(ahorro_intereses)}** en intereses totales pagados."
+                    f"- **Diferencia neta entre sistemas:** En esta entidad, el sistema de Abono Constante genera un **ahorro neto de {pesos_md(ahorro_intereses)}** en intereses totales frente a la cuota fija.\n\n"
+                    f"*(Tip: en el panel izquierdo puedes cambiar de entidad en cualquier momento usando el selector de radio para ver el gráfico y la tabla detallada de cada una en tiempo real).*"
                 )
 
             with tab_p3:
