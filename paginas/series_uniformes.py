@@ -4,7 +4,7 @@ import numpy_financial as npf
 import streamlit as st
 
 from componentes import entradas, estilos, graficos
-from componentes.formato import numero, pesos, porcentaje
+from componentes.formato import numero, pesos, pesos_md, porcentaje
 from componentes.verificacion import tarjeta_verificacion
 from finanzas import series, tasas
 
@@ -80,11 +80,11 @@ with col_resultados:
         v, a = resultados["vencida"], resultados["anticipada"]
         st.info(
             f"Son **{n} cuotas** de un {periodo} cada una, con una tasa de **{porcentaje(i, 4)} por {periodo}**. "
-            f"Si pagas o ahorras **{pesos(v['cuota'])}** al final de cada {periodo}, eso equivale a tener "
-            f"**{pesos(v['vp'])}** hoy o **{pesos(v['vf'])}** al final. "
+            f"Si pagas o ahorras **{pesos_md(v['cuota'])}** al final de cada {periodo}, eso equivale a tener "
+            f"**{pesos_md(v['vp'])}** hoy o **{pesos_md(v['vf'])}** al final. "
             f"Si la cuota se paga al inicio (anticipada), cada pago gana un {periodo} más de intereses: "
-            f"con {CONOCIDOS[conocido].lower()} de {pesos(valor)}, la cuota anticipada es **{pesos(a['cuota'])}** "
-            f"y el VP **{pesos(a['vp'])}**."
+            f"con {CONOCIDOS[conocido].lower()} de {pesos_md(valor)}, la cuota anticipada es **{pesos_md(a['cuota'])}** "
+            f"y el VP **{pesos_md(a['vp'])}**."
         )
 
 st.subheader("Gráficos")

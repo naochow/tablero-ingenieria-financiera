@@ -60,8 +60,6 @@ with st.sidebar:
         unsafe_allow_html=True,
     )
 
-navegacion.run()
-
 with st.sidebar:
     st.markdown(
         """
@@ -76,3 +74,6 @@ with st.sidebar:
         """,
         unsafe_allow_html=True,
     )
+
+# Al final: si una página se detiene con st.stop(), la barra lateral ya está completa
+navegacion.run()

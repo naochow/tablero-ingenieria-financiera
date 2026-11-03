@@ -25,6 +25,16 @@ def pesos(valor, decimales=0):
     return "$ " + texto
 
 
+def escapar_md(texto):
+    """Escapa "$" para que Streamlit no lo tome como LaTeX en markdown, avisos, botones y etiquetas."""
+    return texto.replace("$", r"\$")
+
+
+def pesos_md(valor, decimales=0):
+    """pesos() para textos con markdown. En tablas, Plotly y bloques HTML el escape se vería literal: usar pesos()."""
+    return escapar_md(pesos(valor, decimales))
+
+
 def porcentaje(tasa, decimales=2):
     """Tasa decimal como porcentaje: 0.195618 -> "19,56%"."""
     return numero(tasa * 100, decimales) + "%"

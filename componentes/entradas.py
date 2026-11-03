@@ -7,7 +7,7 @@ Los campos de tasa muestran porcentaje pero devuelven y guardan decimales.
 
 import streamlit as st
 
-from componentes.formato import porcentaje, pesos
+from componentes.formato import escapar_md, porcentaje, pesos, pesos_md
 from finanzas import tasas
 
 _PREFIJO_PORCENTAJE = "_pct_"
@@ -35,7 +35,7 @@ def campo_dinero(etiqueta, clave=None, valor_inicial=0, minimo=0, paso=100_000, 
         help=ayuda,
         **_argumentos_valor(clave, float(valor_inicial)),
     )
-    st.caption(pesos(valor))
+    st.caption(pesos_md(valor))
     return valor
 
 
@@ -66,11 +66,12 @@ def campo_tasa(etiqueta, clave=None, valor_inicial=0.0, minimo=0.0, maximo=1.0, 
     return valor
 
 
-def campo_numero(etiqueta, clave=None, valor_inicial=1, minimo=1, paso=1, ayuda=None):
+def campo_numero(etiqueta, clave=None, valor_inicial=1, minimo=1, maximo=None, paso=1, ayuda=None):
     """Cantidad (periodos, días, años)."""
     return st.number_input(
         etiqueta,
         min_value=float(minimo),
+        max_value=None if maximo is None else float(maximo),
         step=float(paso),
         format="%g",
         help=ayuda,
@@ -138,4 +139,4 @@ def botones_ejemplos(ejemplos):
     st.caption("Ejemplos para cargar")
     columnas = st.columns(len(ejemplos))
     for columna, (nombre, valores) in zip(columnas, ejemplos.items()):
-        columna.button(nombre, on_click=_cargar_ejemplo, args=(valores,), width="stretch")
+        columna.button(escapar_md(nombre), on_click=_cargar_ejemplo, args=(valores,), width="stretch")

@@ -4,7 +4,7 @@ import numpy_financial as npf
 import streamlit as st
 
 from componentes import entradas, estilos, graficos
-from componentes.formato import numero, pesos, porcentaje
+from componentes.formato import numero, pesos, pesos_md, porcentaje
 from componentes.verificacion import tarjeta_verificacion
 from finanzas import gradientes, tasas
 
@@ -73,7 +73,7 @@ if clase == "aritmetico":
     vp_desde_a1, a1_desde_vp, generar_cuotas = (
         gradientes.vp_aritmetico, gradientes.primera_cuota_aritmetico, gradientes.cuotas_aritmetico
     )
-    texto_cambio = f"{pesos(cambio)} por {periodo}"
+    texto_cambio = f"{pesos_md(cambio)} por {periodo}"
 else:
     vp_desde_a1, a1_desde_vp, generar_cuotas = (
         gradientes.vp_geometrico, gradientes.primera_cuota_geometrico, gradientes.cuotas_geometrico
@@ -114,21 +114,21 @@ with col_resultados:
         estilos.tarjeta_kpi("savings", pesos(sum(cuotas) - vp), "Intereses (cuotas − VP)", "intereses")
 
     if cruce is None:
-        st.markdown(f"La cuota con gradiente no {'baja de' if decrece else 'supera'} la cuota fija de {pesos(a_eq)} en ningún periodo.")
+        st.markdown(f"La cuota con gradiente no {'baja de' if decrece else 'supera'} la cuota fija de {pesos_md(a_eq)} en ningún periodo.")
     else:
         st.markdown(
             f"Desde el **periodo {cruce}** la cuota con gradiente "
-            f"**{'queda por debajo de' if decrece else 'supera a'}** la cuota fija equivalente de {pesos(a_eq)}."
+            f"**{'queda por debajo de' if decrece else 'supera a'}** la cuota fija equivalente de {pesos_md(a_eq)}."
         )
     if min(cuotas) < 0:
         st.warning("Con este gradiente decreciente algunas cuotas son negativas; revisa G o el número de cuotas.")
 
     if explicar:
         st.info(
-            f"La primera cuota es **{pesos(a1)}** y cada {periodo} cambia en **{texto_cambio}**, hasta llegar a "
-            f"**{pesos(cuotas[-1])}** en la cuota {n}. Traídas a hoy con una tasa de {porcentaje(i, 4)} por {periodo}, "
-            f"todas las cuotas valen **{pesos(vp)}**. Pagar ese mismo valor con cuotas iguales sería "
-            f"**{pesos(a_eq)}** cada {periodo}: al inicio pagas {'más' if decrece else 'menos'} que con cuota fija "
+            f"La primera cuota es **{pesos_md(a1)}** y cada {periodo} cambia en **{texto_cambio}**, hasta llegar a "
+            f"**{pesos_md(cuotas[-1])}** en la cuota {n}. Traídas a hoy con una tasa de {porcentaje(i, 4)} por {periodo}, "
+            f"todas las cuotas valen **{pesos_md(vp)}**. Pagar ese mismo valor con cuotas iguales sería "
+            f"**{pesos_md(a_eq)}** cada {periodo}: al inicio pagas {'más' if decrece else 'menos'} que con cuota fija "
             f"y al final {'menos' if decrece else 'más'}."
         )
 

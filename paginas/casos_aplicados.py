@@ -8,14 +8,9 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from componentes import entradas, estilos, graficos
-from componentes.formato import numero, pesos, porcentaje
+from componentes.formato import escapar_md, numero, pesos, pesos_md, porcentaje
 from componentes.verificacion import tarjeta_verificacion
 from finanzas import amortizacion, gradientes, series, tasas
-
-
-def p_md(valor, decimales=0):
-    """Devuelve pesos con signo $ escapado para evitar que Streamlit lo confunda con KaTeX."""
-    return pesos(valor, decimales).replace("$", r"\$")
 
 
 def p_tex(valor, decimales=2):
@@ -330,16 +325,16 @@ if caso_seleccionado_id == "vehiculo_sufi_davivienda":
             with tab_p2:
                 st.markdown(
                     f"**¿Cuánto se paga en total y qué parte corresponde a intereses?**\n"
-                    f"Para el capital de **{p_md(monto_vehiculo)}** a **{plazo_meses} meses** bajo la tasa de {desc_tasa}:\n"
+                    f"Para el capital de **{pesos_md(monto_vehiculo)}** a **{plazo_meses} meses** bajo la tasa de {desc_tasa}:\n"
                     f"- **Bajo Sistema Francés (Cuota Fija):**\n"
-                    f"  - Valor total desembolsado: **{p_md(res_frances['total_pagado'])}**.\n"
-                    f"  - Capital amortizado: **{p_md(monto_vehiculo)}** ({porcentaje(monto_vehiculo / res_frances['total_pagado'])} del total).\n"
-                    f"  - Intereses pagados: **{p_md(res_frances['total_intereses'])}** ({porcentaje(res_frances['total_intereses'] / res_frances['total_pagado'])} del total).\n"
+                    f"  - Valor total desembolsado: **{pesos_md(res_frances['total_pagado'])}**.\n"
+                    f"  - Capital amortizado: **{pesos_md(monto_vehiculo)}** ({porcentaje(monto_vehiculo / res_frances['total_pagado'])} del total).\n"
+                    f"  - Intereses pagados: **{pesos_md(res_frances['total_intereses'])}** ({porcentaje(res_frances['total_intereses'] / res_frances['total_pagado'])} del total).\n"
                     f"- **Bajo Sistema Alemán (Abono Constante a Capital):**\n"
-                    f"  - Valor total desembolsado: **{p_md(res_aleman['total_pagado'])}**.\n"
-                    f"  - Capital amortizado: **{p_md(monto_vehiculo)}** ({porcentaje(monto_vehiculo / res_aleman['total_pagado'])} del total).\n"
-                    f"  - Intereses pagados: **{p_md(res_aleman['total_intereses'])}** ({porcentaje(res_aleman['total_intereses'] / res_aleman['total_pagado'])} del total).\n"
-                    f"- **Diferencia neta:** El Sistema Alemán genera un **ahorro neto de {p_md(ahorro_intereses)}** en intereses totales pagados."
+                    f"  - Valor total desembolsado: **{pesos_md(res_aleman['total_pagado'])}**.\n"
+                    f"  - Capital amortizado: **{pesos_md(monto_vehiculo)}** ({porcentaje(monto_vehiculo / res_aleman['total_pagado'])} del total).\n"
+                    f"  - Intereses pagados: **{pesos_md(res_aleman['total_intereses'])}** ({porcentaje(res_aleman['total_intereses'] / res_aleman['total_pagado'])} del total).\n"
+                    f"- **Diferencia neta:** El Sistema Alemán genera un **ahorro neto de {pesos_md(ahorro_intereses)}** en intereses totales pagados."
                 )
 
             with tab_p3:
@@ -349,10 +344,10 @@ if caso_seleccionado_id == "vehiculo_sufi_davivienda":
                 st.markdown(
                     f"**¿Cómo cambia el resultado si varían la tasa, el plazo o la cuota?**\n"
                     f"- **Impacto del plazo:**\n"
-                    f"  - Si reduces el plazo de 48 a **36 meses**, el interés total en cuota fija cae de **{p_md(res_frances['total_intereses'])}** a un valor menor, pero la cuota mensual sube para cubrir el capital en menos tiempo.\n"
+                    f"  - Si reduces el plazo de 48 a **36 meses**, el interés total en cuota fija cae de **{pesos_md(res_frances['total_intereses'])}** a un valor menor, pero la cuota mensual sube para cubrir el capital en menos tiempo.\n"
                     f"  - Si extiendes el plazo a **60 meses**, la cuota mensual baja brindando holgura inmediata, pero el sobrecosto por intereses totales pagados sube más de un **25%**.\n"
                     f"- **Impacto de la tasa:**\n"
-                    f"  - Si la tasa sube apenas 10 puntos básicos, de {porcentaje(tasa_mv, 4)} a {porcentaje(tasa_mv_sens, 4)} mensual, el total de intereses en cuota fija aumenta **{p_md(interes_sens)} COP**.\n"
+                    f"  - Si la tasa sube apenas 10 puntos básicos, de {porcentaje(tasa_mv, 4)} a {porcentaje(tasa_mv_sens, 4)} mensual, el total de intereses en cuota fija aumenta **{pesos_md(interes_sens)} COP**.\n"
                     f"- *Puedes simular cualquier combinación en tiempo real usando los controles del panel izquierdo.*"
                 )
 
@@ -363,8 +358,8 @@ if caso_seleccionado_id == "vehiculo_sufi_davivienda":
                     f"   - **Argumento:** Presenta menor costo financiero efectivo anual (**{porcentaje(oferta_barata['ea'], 2)} E.A.** frente a **{porcentaje(oferta_cara['ea'], 2)} E.A.** de {oferta_cara['entidad']}).\n"
                     f"   - **Precaución:** {notas_tasas} Conviene pedir una cotización vigente a ambas entidades antes de decidir.\n"
                     f"2. **Sistema de Amortización (con la tasa seleccionada: {desc_tasa}):**\n"
-                    f"   - **Opción de Mínimo Costo (Recomendada si hay capacidad de pago):** **Sistema Alemán**, porque produce un ahorro neto de **{p_md(ahorro_intereses)}** en intereses y las cuotas van decreciendo mes a mes desde **{p_md(res_aleman['cuota_inicial'])}** hasta **{p_md(res_aleman['cuota_final'])}**.\n"
-                    f"   - **Opción de Estabilidad de Flujo de Caja:** **Sistema Francés**, recomendada si el comprador cuenta con un salario fijo estricto y prefiere certidumbre presupuestal pagando siempre **{p_md(res_frances['cuota_inicial'])}** fijos."
+                    f"   - **Opción de Mínimo Costo (Recomendada si hay capacidad de pago):** **Sistema Alemán**, porque produce un ahorro neto de **{pesos_md(ahorro_intereses)}** en intereses y las cuotas van decreciendo mes a mes desde **{pesos_md(res_aleman['cuota_inicial'])}** hasta **{pesos_md(res_aleman['cuota_final'])}**.\n"
+                    f"   - **Opción de Estabilidad de Flujo de Caja:** **Sistema Francés**, recomendada si el comprador cuenta con un salario fijo estricto y prefiere certidumbre presupuestal pagando siempre **{pesos_md(res_frances['cuota_inicial'])}** fijos."
                 )
 
         # Tablas desplegables
@@ -595,18 +590,18 @@ elif caso_seleccionado_id == "inversion_bancolombia_nu":
             with tab_p2:
                 st.markdown(
                     f"**¿Cuánto se recibe en total y qué parte corresponde a intereses netos e impuestos?**\n"
-                    f"Para un capital inicial de **{p_md(capital_inv)}** a un plazo de **{plazo_dias} días**:\n"
+                    f"Para un capital inicial de **{pesos_md(capital_inv)}** a un plazo de **{plazo_dias} días**:\n"
                     f"- **En CDT Bancolombia:**\n"
-                    f"  - Intereses brutos causados: **{p_md(intereses_brutos_cdt)}**.\n"
-                    f"  - Descuento de retención en la fuente ({porcentaje(ret_cdt, 1)}): **-{p_md(retencion_cdt)}**.\n"
-                    f"  - Rendimiento neto de bolsillo: **+{p_md(intereses_netos_cdt)}**.\n"
-                    f"  - **Capital total final recibido:** **{p_md(vf_neto_cdt)}**.\n"
+                    f"  - Intereses brutos causados: **{pesos_md(intereses_brutos_cdt)}**.\n"
+                    f"  - Descuento de retención en la fuente ({porcentaje(ret_cdt, 1)}): **-{pesos_md(retencion_cdt)}**.\n"
+                    f"  - Rendimiento neto de bolsillo: **+{pesos_md(intereses_netos_cdt)}**.\n"
+                    f"  - **Capital total final recibido:** **{pesos_md(vf_neto_cdt)}**.\n"
                     f"- **En Cuenta Nu:**\n"
-                    f"  - Intereses brutos causados: **{p_md(intereses_brutos_nu)}**.\n"
-                    f"  - Descuento de retención en la fuente ({porcentaje(ret_nu, 1)}): **-{p_md(retencion_nu)}**.\n"
-                    f"  - Rendimiento neto de bolsillo: **+{p_md(intereses_netos_nu)}**.\n"
-                    f"  - **Capital total final acumulado:** **{p_md(vf_neto_nu)}**.\n"
-                    f"- **Ganancia neta adicional en {ganador}:** **+{p_md(diff_val)} COP** limpios al bolsillo del inversionista."
+                    f"  - Intereses brutos causados: **{pesos_md(intereses_brutos_nu)}**.\n"
+                    f"  - Descuento de retención en la fuente ({porcentaje(ret_nu, 1)}): **-{pesos_md(retencion_nu)}**.\n"
+                    f"  - Rendimiento neto de bolsillo: **+{pesos_md(intereses_netos_nu)}**.\n"
+                    f"  - **Capital total final acumulado:** **{pesos_md(vf_neto_nu)}**.\n"
+                    f"- **Ganancia neta adicional en {ganador}:** **+{pesos_md(diff_val)} COP** limpios al bolsillo del inversionista."
                 )
 
             with tab_p3:
@@ -615,7 +610,7 @@ elif caso_seleccionado_id == "inversion_bancolombia_nu":
                     f"**¿Cómo cambia el resultado si varían la tasa, el plazo o la inflación?**\n"
                     f"- **Impacto del plazo (puedes alternar 90, 180 y 360 días a la izquierda):**\n"
                     f"  - A menor plazo, la diferencia en dinero entre ambas alternativas es de menor volumen absoluto, y la cuenta conserva la ventaja de la liquidez diaria.\n"
-                    f"  - A {plazo_dias} días, la brecha de ganancia neta es de **{p_md(diff_val)} COP** a favor de {ganador}.\n"
+                    f"  - A {plazo_dias} días, la brecha de ganancia neta es de **{pesos_md(diff_val)} COP** a favor de {ganador}.\n"
                     f"- **Impacto de la inflación (IPC):**\n"
                     f"  - Si la inflación sube al {porcentaje(ipc_alto, 2)}, la rentabilidad real baja a **{porcentaje(tasas.tasa_real(tea_neta_cdt, ipc_alto), 2)}** en el CDT y a **{porcentaje(tasas.tasa_real(tea_neta_nu, ipc_alto), 2)}** en la cuenta.\n"
                     f"- **Mecanismo de pago en el CDT (Simple vs. Compuesto):**\n"
@@ -638,11 +633,11 @@ elif caso_seleccionado_id == "inversion_bancolombia_nu":
                     argumento_rentabilidad = (
                         f"Ofrece mayor TEA neta post-impuestos (**{porcentaje(tea_neta_cdt, 2)}** vs **{porcentaje(tea_neta_nu, 2)}**) "
                         f"y mayor rentabilidad real frente a la inflación (**{porcentaje(rent_real_cdt, 2)}** vs **{porcentaje(rent_real_nu, 2)}**), "
-                        f"con **+{p_md(diff_val)} COP** netos. Además, su tasa queda pactada, mientras la de la cuenta puede cambiar."
+                        f"con **+{pesos_md(diff_val)} COP** netos. Además, su tasa queda pactada, mientras la de la cuenta puede cambiar."
                     )
                     argumento_liquidez = (
                         f"**Costo en Liquidez:** El CDT congela el dinero durante {plazo_dias} días (penalización severa por retiro anticipado). "
-                        f"Si existe la posibilidad de necesitarlo antes, conviene la cuenta Nu: esos {p_md(diff_val)} COP son el precio de tener el dinero disponible en cualquier momento."
+                        f"Si existe la posibilidad de necesitarlo antes, conviene la cuenta Nu: esos {pesos_md(diff_val)} COP son el precio de tener el dinero disponible en cualquier momento."
                     )
                 st.markdown(
                     f"**¿Qué alternativa o decisión recomiendan y con qué argumentos?**\n"
@@ -859,10 +854,10 @@ elif caso_seleccionado_id == "ahorro_cuota_inicial_gradientes":
             with tab_p2:
                 st.markdown(
                     f"**¿Cuánto se aporta en total y qué parte corresponde a intereses ganados?**\n"
-                    f"Para el plan a **{n_meses} meses** iniciando con **{p_md(a1)}** e incremento ({desc_incremento}):\n"
-                    f"- **Total de aportes propios (de tu bolsillo):** **{p_md(total_aportado)}** ({porcentaje(total_aportado / vf_acumulado, 1)} del capital acumulado final).\n"
-                    f"- **Rendimientos puros generados por el fondo:** **+{p_md(intereses_ganados)}** ({porcentaje(intereses_ganados / vf_acumulado, 1)} del capital acumulado final).\n"
-                    f"- **Capital total acumulado al mes {n_meses} (VF):** **{p_md(vf_acumulado)}**.\n"
+                    f"Para el plan a **{n_meses} meses** iniciando con **{pesos_md(a1)}** e incremento ({escapar_md(desc_incremento)}):\n"
+                    f"- **Total de aportes propios (de tu bolsillo):** **{pesos_md(total_aportado)}** ({porcentaje(total_aportado / vf_acumulado, 1)} del capital acumulado final).\n"
+                    f"- **Rendimientos puros generados por el fondo:** **+{pesos_md(intereses_ganados)}** ({porcentaje(intereses_ganados / vf_acumulado, 1)} del capital acumulado final).\n"
+                    f"- **Capital total acumulado al mes {n_meses} (VF):** **{pesos_md(vf_acumulado)}**.\n"
                     f"- **Efecto de la capitalización:** Prácticamente el **{porcentaje(intereses_ganados / vf_acumulado, 1)} de la cuota inicial de la vivienda** es dinero regalado por el interés compuesto."
                 )
 
@@ -873,11 +868,11 @@ elif caso_seleccionado_id == "ahorro_cuota_inicial_gradientes":
                 vf_tasa_alta = sum(c * (1 + tasa_mv_alta) ** (n_meses - m) for m, c in zip(meses_arr, cuotas))
                 st.markdown(
                     f"**¿Cómo cambia el resultado si varían la tasa, el plazo o la modalidad de gradiente?**\n"
-                    f"- **Aritmético (+ {p_md(g_arit_val)}/mes) vs. Geométrico (+ {porcentaje(p['gradiente_geometrico_g'])}):**\n"
+                    f"- **Aritmético (+ {pesos_md(g_arit_val)}/mes) vs. Geométrico (+ {porcentaje(p['gradiente_geometrico_g'])}):**\n"
                     f"  - El gradiente aritmético sube a ritmo constante lineal, ideal para quien tiene expectativas de incrementos salariales fijos en pesos.\n"
                     f"  - El gradiente geométrico crece a tasa porcentual compuesta; si se fija en 2% mensual, en los primeros meses exige cuotas más bajas pero al final crece de forma pronunciada.\n"
                     f"- **Impacto de la tasa de interés:**\n"
-                    f"  - Si la rentabilidad del fondo sube de {porcentaje(tasa_ea_fondo, 2)} a {porcentaje(tasa_ea_alta, 2)} E.A., el capital final VF se incrementa en **{p_md(vf_tasa_alta - vf_acumulado)} COP** sin tener que aportar un solo peso adicional de bolsillo. Como la rentabilidad no está garantizada, también puede bajar y reducir el capital final.\n"
+                    f"  - Si la rentabilidad del fondo sube de {porcentaje(tasa_ea_fondo, 2)} a {porcentaje(tasa_ea_alta, 2)} E.A., el capital final VF se incrementa en **{pesos_md(vf_tasa_alta - vf_acumulado)} COP** sin tener que aportar un solo peso adicional de bolsillo. Como la rentabilidad no está garantizada, también puede bajar y reducir el capital final.\n"
                     f"- *Prueba a cambiar a la izquierda el tipo de gradiente o el plazo para recalcular toda la trayectoria.*"
                 )
 
@@ -885,11 +880,11 @@ elif caso_seleccionado_id == "ahorro_cuota_inicial_gradientes":
                 st.markdown(
                     f"**¿Qué alternativa o decisión recomiendan y con qué argumentos?**\n"
                     f"**Comparación con Cuota Fija Equivalente ($A_{{eq}}$):**\n"
-                    f"- Para acumular exactamente los mismos **{p_md(vf_acumulado)}** al mes {n_meses}, el ahorrador habría tenido que pagar una cuota fija mensual de **{p_md(cuota_equivalente)}** todos los meses desde el mes 1.\n\n"
+                    f"- Para acumular exactamente los mismos **{pesos_md(vf_acumulado)}** al mes {n_meses}, el ahorrador habría tenido que pagar una cuota fija mensual de **{pesos_md(cuota_equivalente)}** todos los meses desde el mes 1.\n\n"
                     f"**Veredicto y Recomendación:**\n"
                     f"1. **Recomendación: Ahorro con Gradiente Aritmético.**\n"
                     f"2. **Argumentos Financieros:**\n"
-                    f"   - **Accesibilidad y Viabilidad Inicial:** Exige solo **{p_md(a1)}** el mes 1, facilitando la creación del hábito de ahorro sin asfixiar el presupuesto familiar, en contraste con comprometerse con **{p_md(cuota_equivalente)}** desde el día uno.\n"
+                    f"   - **Accesibilidad y Viabilidad Inicial:** Exige solo **{pesos_md(a1)}** el mes 1, facilitando la creación del hábito de ahorro sin asfixiar el presupuesto familiar, en contraste con comprometerse con **{pesos_md(cuota_equivalente)}** desde el día uno.\n"
                     f"   - **Cruce en el mes {cruce_mes}:** El esfuerzo mensual del gradiente se mantiene por debajo de la cuota fija durante los primeros {cruce_mes - 1} meses del plan, adaptándose a la curva natural de crecimiento de ingresos del profesional o familia."
                 )
 

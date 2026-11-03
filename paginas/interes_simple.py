@@ -3,7 +3,7 @@
 import streamlit as st
 
 from componentes import entradas, estilos, graficos
-from componentes.formato import numero, pesos, porcentaje
+from componentes.formato import numero, pesos, pesos_md, porcentaje
 from componentes.verificacion import tarjeta_verificacion
 from finanzas import interes
 
@@ -70,19 +70,19 @@ with col_resultados:
 
     if explicar:
         st.info(
-            f"Inviertes o prestas **{pesos(capital)}** a una tasa simple de "
+            f"Inviertes o prestas **{pesos_md(capital)}** a una tasa simple de "
             f"**{porcentaje(tasa_anual)} anual** durante **{numero(plazo, 0 if plazo == int(plazo) else 2)} "
             f"{UNIDADES_PLAZO[unidad_plazo].lower()}**. Como el interés simple siempre se calcula sobre "
-            f"el capital inicial, cada {periodo} ganas lo mismo: **{pesos(capital * tasa_periodo)}**. "
-            f"Al final acumulas **{pesos(intereses)}** de intereses y recibes **{pesos(vf)}**."
+            f"el capital inicial, cada {periodo} ganas lo mismo: **{pesos_md(capital * tasa_periodo)}**. "
+            f"Al final acumulas **{pesos_md(intereses)}** de intereses y recibes **{pesos_md(vf)}**."
         )
 
     if unidad_plazo == "dias":
         otra = 365 if dias_ano == 360 else 360
         intereses_otra = interes.interes_simple(capital, tasa_anual, interes.plazo_en_anos(plazo, "dias", otra))
         st.caption(
-            f"Con año de {otra} días el interés sería {pesos(intereses_otra)} "
-            f"({pesos(intereses_otra - intereses)} de diferencia)."
+            f"Con año de {otra} días el interés sería {pesos_md(intereses_otra)} "
+            f"({pesos_md(intereses_otra - intereses)} de diferencia)."
         )
     else:
         st.caption("La convención de días solo cambia el resultado cuando el plazo está en días.")

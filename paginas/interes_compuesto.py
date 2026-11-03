@@ -5,7 +5,7 @@ import pandas as pd
 import streamlit as st
 
 from componentes import entradas, estilos, graficos
-from componentes.formato import numero, pesos, porcentaje
+from componentes.formato import numero, pesos, pesos_md, porcentaje
 from componentes.verificacion import tarjeta_verificacion
 from finanzas import interes, tasas
 
@@ -73,10 +73,10 @@ with col_resultados:
 
     if explicar:
         st.info(
-            f"Inviertes **{pesos(capital)}** al **{porcentaje(tasa)} {periodicidad}** durante "
+            f"Inviertes **{pesos_md(capital)}** al **{porcentaje(tasa)} {periodicidad}** durante "
             f"**{numero(n, 0 if n == int(n) else 2)} {periodo}**. Cada periodo los intereses se suman al "
             f"saldo, así que el siguiente periodo ganas intereses sobre un valor más grande. "
-            f"Terminas con **{pesos(vf)}**: **{pesos(diferencia)}** más que con interés simple a la "
+            f"Terminas con **{pesos_md(vf)}**: **{pesos_md(diferencia)}** más que con interés simple a la "
             f"misma tasa. A este ritmo tu dinero se duplica en unos **{numero(duplicar, 1)} {periodo}**."
         )
 

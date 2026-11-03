@@ -230,7 +230,7 @@ with k4:
           </div>
           <div class="kpi-valor" style="color: #34D399; font-size: 1.45rem; margin-top: 0.3rem;">{total_ok} / {total_modulos} OK</div>
           <div style="font-size: 0.75rem; color: #94A3B8; margin-top: 0.25rem; display: flex; align-items: center; gap: 0.3rem;">
-            <i class="fa-solid fa-check-double" style="color: #10B981;"></i> 52 tests unitarios aprobados
+            <i class="fa-solid fa-check-double" style="color: #10B981;"></i> 53 tests unitarios aprobados
           </div>
         </div>
         """,

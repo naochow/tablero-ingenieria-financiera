@@ -18,6 +18,12 @@ def test_pesos_negativos_y_cero_negativo():
     assert formato.pesos(-0.3) == "$ 0"
 
 
+def test_pesos_md_escapa_el_signo():
+    assert formato.pesos_md(1234567) == r"\$ 1.234.567"
+    assert formato.pesos_md(-1500000) == r"-\$ 1.500.000"
+    assert formato.escapar_md("$500.000 + $20.000") == r"\$500.000 + \$20.000"
+
+
 def test_porcentaje():
     assert formato.porcentaje(0.195618) == "19,56%"
     assert formato.porcentaje(0.195618, decimales=4) == "19,5618%"

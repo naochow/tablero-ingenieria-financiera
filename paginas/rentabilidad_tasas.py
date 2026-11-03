@@ -4,7 +4,7 @@ import pandas as pd
 import streamlit as st
 
 from componentes import entradas, estilos, graficos
-from componentes.formato import numero, pesos, porcentaje, tasa_con_codigo
+from componentes.formato import numero, pesos, pesos_md, porcentaje, tasa_con_codigo
 from componentes.verificacion import tarjeta_verificacion
 from finanzas import tasas
 
@@ -88,8 +88,8 @@ with col_resultados:
         st.info(
             f"Escribiste una tasa de **{describir(valor, tipo, periodicidad, modalidad)}**. "
             + (("Para llevarla a efectiva anual, " + "; ".join(pasos) + ". ") if pasos else "")
-            + f"El resultado es **{porcentaje(ea, 4)} EA**: si inviertes {pesos(MONTO_PRUEBA)} durante "
-            f"un año a esta tasa, terminas con **{pesos(MONTO_PRUEBA * (1 + ea))}**. Las tasas de la tabla "
+            + f"El resultado es **{porcentaje(ea, 4)} EA**: si inviertes {pesos_md(MONTO_PRUEBA)} durante "
+            f"un año a esta tasa, terminas con **{pesos_md(MONTO_PRUEBA * (1 + ea))}**. Las tasas de la tabla "
             f"de abajo son la misma tasa escrita de otras formas."
         )
 
@@ -158,10 +158,10 @@ with col_retencion, estilos.tarjeta("rt_retencion"):
     estilos.tarjeta_kpi("receipt_long", tasa_con_codigo(neta, "EA", 4), "TEA neta después de retención", TEMA)
     intereses_brutos = MONTO_PRUEBA * ea
     st.markdown(
-        f"Sobre {pesos(MONTO_PRUEBA)} a un año: intereses "
-        f"<span class='intereses'>{pesos(intereses_brutos)}</span>, retención "
-        f"{pesos(intereses_brutos * retencion)}, recibes "
-        f"<span class='intereses'>{pesos(intereses_brutos * (1 - retencion))}</span> de intereses.",
+        f"Sobre {pesos_md(MONTO_PRUEBA)} a un año: intereses "
+        f"<span class='intereses'>{pesos_md(intereses_brutos)}</span>, retención "
+        f"{pesos_md(intereses_brutos * retencion)}, recibes "
+        f"<span class='intereses'>{pesos_md(intereses_brutos * (1 - retencion))}</span> de intereses.",
         unsafe_allow_html=True,
     )
 
@@ -207,7 +207,7 @@ else:
         f"Conviene la **oferta {mejor}** ({porcentaje(ofertas[mejor])} EA): "
         f"{'cuesta' if objetivo == 'credito' else 'rinde'} {numero(diferencia * 100, 2)} puntos porcentuales "
         f"{'menos' if objetivo == 'credito' else 'más'} al año que la oferta {otra}. "
-        f"Sobre {pesos(MONTO_PRUEBA)} a un año son {pesos(MONTO_PRUEBA * diferencia)}."
+        f"Sobre {pesos_md(MONTO_PRUEBA)} a un año son {pesos_md(MONTO_PRUEBA * diferencia)}."
     )
 
 with st.expander("Fórmulas usadas"):
