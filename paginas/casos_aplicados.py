@@ -494,7 +494,8 @@ elif caso_seleccionado_id == "inversion_bancolombia_nu":
     with col_der:
         st.subheader(f"Comparativa de Rentabilidad Neta ({plazo_dias} días)")
 
-        k1, k2, k3, k4 = st.columns(4)
+        k1, k2 = st.columns(2)
+        k3, k4 = st.columns(2)
         with k1:
             estilos.tarjeta_kpi("account_balance", pesos(intereses_netos_cdt), "Ganancia neta CDT", "principal")
         with k2:
@@ -742,7 +743,8 @@ elif caso_seleccionado_id == "ahorro_cuota_inicial_gradientes":
     with col_der:
         st.subheader("Resultados del Plan de Ahorro para Cuota Inicial")
 
-        k1, k2, k3, k4 = st.columns(4)
+        k1, k2 = st.columns(2)
+        k3, k4 = st.columns(2)
         with k1:
             estilos.tarjeta_kpi("savings", pesos(vf_acumulado), "Capital acumulado (VF)", "amortizacion")
         with k2:

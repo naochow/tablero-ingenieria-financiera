@@ -59,7 +59,8 @@ periodos, saldos = interes.acumulado_compuesto(capital, tasa, n)
 _, saldos_simple = interes.acumulado_simple(capital, tasa, n)
 
 with col_resultados:
-    k1, k2, k3, k4 = st.columns(4)
+    k1, k2 = st.columns(2)
+    k3, k4 = st.columns(2)
     with k1:
         estilos.tarjeta_kpi("account_balance_wallet", pesos(vf), "Valor futuro (VF)", TEMA)
     with k2:

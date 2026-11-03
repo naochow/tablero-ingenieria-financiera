@@ -65,7 +65,8 @@ with col_resultados:
     )
     for modalidad, r in resultados.items():
         st.markdown(f"**{MODALIDADES_SERIE[modalidad]}** · cuotas al {'final' if modalidad == 'vencida' else 'inicio'} de cada {periodo}")
-        k1, k2, k3, k4 = st.columns(4)
+        k1, k2 = st.columns(2)
+        k3, k4 = st.columns(2)
         with k1:
             estilos.tarjeta_kpi("payments", pesos(r["cuota"]), "Cuota (A)", TEMA)
         with k2:

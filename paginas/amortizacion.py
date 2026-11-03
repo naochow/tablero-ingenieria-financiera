@@ -273,7 +273,8 @@ with col_resultados:
         f"**Tasa periódica = {porcentaje(i, 6)} {periodo}**."
     )
 
-    k1, k2, k3, k4 = st.columns(4)
+    k1, k2 = st.columns(2)
+    k3, k4 = st.columns(2)
     with k1:
         etiqueta_kpi = "Cuota ordinaria" if sistema == "frances" and modalidad_gracia == "ninguno" else "Cuota inicial"
         estilos.tarjeta_kpi("payments", pesos(resumen["cuota_inicial"]), etiqueta_kpi, TEMA)

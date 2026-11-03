@@ -192,6 +192,24 @@ def aplicar_estilos(temas_por_ruta):
             box-sizing: border-box !important;
             transition: all 0.2s ease-in-out !important;
         }}
+        /* Misma altura por fila: cada nivel entre la columna y la tarjeta se estira */
+        [data-testid="stColumn"]:has(.kpi):not(:has([data-testid="stColumn"])) > [data-testid="stVerticalBlock"],
+        [data-testid="stElementContainer"]:has(.kpi),
+        [data-testid="stMarkdown"]:has(.kpi),
+        [data-testid="stMarkdown"]:has(.kpi) > div,
+        [data-testid="stMarkdownContainer"]:has(.kpi) {{
+            height: 100% !important;
+        }}
+        [data-testid="stMarkdownContainer"]:has(.kpi) {{
+            margin-bottom: 0 !important;
+        }}
+        /* Si el valor no cabe en la fila, la tarjeta pasa a la línea siguiente; bajo 640px Streamlit ya apila */
+        @media (min-width: 641px) {{
+            [data-testid="stColumn"]:has(.kpi):not(:has([data-testid="stColumn"])) {{
+                min-width: min-content !important;
+                max-width: 100% !important;
+            }}
+        }}
         .kpi:hover {{
             border-color: var(--color) !important;
             box-shadow: 0 0 16px rgba(99, 102, 241, 0.25) !important;
@@ -218,15 +236,13 @@ def aplicar_estilos(temas_por_ruta):
         }}
         .kpi-valor {{
             font-family: 'JetBrains Mono', monospace !important;
-            font-size: 1.35rem !important;
+            font-size: clamp(1rem, 1.5vw, 1.5rem) !important;
             font-weight: 700 !important;
             margin-top: 0.35rem !important;
             margin-bottom: 0.2rem !important;
             color: #FFFFFF !important;
             letter-spacing: -0.02em !important;
             white-space: nowrap !important;
-            overflow: hidden !important;
-            text-overflow: ellipsis !important;
         }}
         .kpi-etiqueta {{
             font-size: 0.75rem !important;
