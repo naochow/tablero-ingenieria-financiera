@@ -30,6 +30,16 @@ def escapar_md(texto):
     return texto.replace("$", r"\$")
 
 
+def supuesto_retencion_cuenta(interes_diario):
+    """Supuesto de retención de la cuenta de ahorros en markdown, con el interés diario redondeado a dos cifras."""
+    unos = float(f"{interes_diario:.2g}")
+    return (
+        "**Supuesto:** la retención del 7% se aplica sobre la totalidad de los intereses de la cuenta de ahorros. "
+        f"Con el capital del caso, el interés diario (unos \\${numero(unos)} con año de 360 días) supera ampliamente "
+        "cualquier base mínima diaria."
+    )
+
+
 def pesos_md(valor, decimales=0):
     """pesos() para textos con markdown. En tablas, Plotly y bloques HTML el escape se vería literal: usar pesos()."""
     return escapar_md(pesos(valor, decimales))

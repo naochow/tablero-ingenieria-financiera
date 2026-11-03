@@ -152,7 +152,10 @@ with col_retencion, estilos.tarjeta("rt_retencion"):
     st.markdown("**Retención en la fuente sobre los intereses**")
     retencion = entradas.campo_tasa(
         "Retención", "rt_retencion", 0.04, maximo=1.0,
-        ayuda="Tarifa general del 4,0% para rendimientos financieros según Estatuto Tributario Art. 395.",
+        ayuda=(
+            "Retención en la fuente sobre rendimientos financieros (E.T. art. 395 y decretos reglamentarios): "
+            "4% para CDT y 7% para cuentas de ahorro, según Valora Analitik (9 de enero de 2025)."
+        ),
     )
     neta = tasas.tea_neta(ea, retencion)
     estilos.tarjeta_kpi("receipt_long", tasa_con_codigo(neta, "EA", 4), "TEA neta después de retención", TEMA)

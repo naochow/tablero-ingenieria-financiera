@@ -24,6 +24,12 @@ def test_pesos_md_escapa_el_signo():
     assert formato.escapar_md("$500.000 + $20.000") == r"\$500.000 + \$20.000"
 
 
+def test_supuesto_retencion_redondea_interes_diario():
+    assert r"unos \$5.000 con año de 360 días" in formato.supuesto_retencion_cuenta(4966.4)
+    assert r"unos \$25.000 con año de 360 días" in formato.supuesto_retencion_cuenta(24832)
+    assert r"unos \$25 con año de 360 días" in formato.supuesto_retencion_cuenta(24.8)
+
+
 def test_porcentaje():
     assert formato.porcentaje(0.195618) == "19,56%"
     assert formato.porcentaje(0.195618, decimales=4) == "19,5618%"

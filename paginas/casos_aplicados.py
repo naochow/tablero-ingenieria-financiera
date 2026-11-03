@@ -8,7 +8,7 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from componentes import entradas, estilos, graficos
-from componentes.formato import escapar_md, numero, pesos, pesos_md, porcentaje
+from componentes.formato import escapar_md, numero, pesos, pesos_md, porcentaje, supuesto_retencion_cuenta
 from componentes.verificacion import tarjeta_verificacion
 from finanzas import amortizacion, gradientes, series, tasas
 
@@ -65,6 +65,12 @@ FALLBACK_INFO = {
                 "nombre": "DANE: boletín IPC septiembre 2026",
                 "url": "https://www.dane.gov.co/files/operaciones/IPC/sep2026/bol-IPC-sep2026.pdf",
                 "fecha": "7 de octubre de 2026",
+            },
+            {
+                "nombre": "Valora Analitik",
+                "url": "https://www.valoraanalitik.com/diferencias-retencion-fuente-cdt-cuenta-ahorros/",
+                "fecha": "9 de enero de 2025",
+                "nota": "Tarifas de retención: 4% para CDT y 7% para cuentas de ahorro.",
             },
         ],
         "parametros": {
@@ -436,15 +442,24 @@ elif caso_seleccionado_id == "inversion_bancolombia_nu":
                 "Retención CDT (4%)",
                 "inv_ret_cdt",
                 p.get("retencion_cdt", 0.04),
-                ayuda="4,0% para títulos de renta fija según Estatuto Tributario Art. 395.",
+                ayuda="4% para CDT (E.T. art. 395 y decretos reglamentarios).",
             )
         with c_ret2:
             ret_nu = entradas.campo_tasa(
                 "Retención Cuenta (7%)",
                 "inv_ret_nu",
                 p.get("retencion_cuenta", 0.07),
-                ayuda="7,0% general para rendimientos en cuentas de ahorro según Estatuto Tributario Art. 398-1.",
+                ayuda="7% para cuentas de ahorro (E.T. art. 395 y decretos reglamentarios).",
             )
+        st.caption(
+            "Retención en la fuente sobre rendimientos financieros (E.T. art. 395 y decretos reglamentarios): "
+            "4% para CDT y 7% para cuentas de ahorro, según Valora Analitik (9 de enero de 2025). "
+            "El 4% del CDT lo confirma el simulador de Bancolombia: retención de \\$74.800 sobre \\$1.870.000 "
+            "de intereses (consultado el 2 de noviembre de 2026)."
+        )
+        # Se guarda para que Supuestos muestre la misma cifra con los valores ingresados aquí
+        st.session_state["inv_interes_diario"] = capital_inv * tasas.periodica_desde_ea(tasa_nu_ea, 360)
+        st.caption(supuesto_retencion_cuenta(st.session_state["inv_interes_diario"]))
         ipc_anual = entradas.campo_tasa(
             "Inflación anual (IPC)",
             "inv_ipc",
@@ -576,12 +591,13 @@ elif caso_seleccionado_id == "inversion_bancolombia_nu":
                     f"**¿Cuál es la rentabilidad real del producto (tasa efectiva anual y neta de retención)?**\n"
                     f"- **CDT Bancolombia:**\n"
                     f"  - Tasa pactada: **{porcentaje(tasa_cdt_ea, 2)} E.A.**\n"
-                    f"  - Tasa Efectiva Anual Neta (post-retefuente {porcentaje(ret_cdt, 1)} E.T. Art. 395): **{porcentaje(tea_neta_cdt, 2)} E.A.**\n"
+                    f"  - Tasa Efectiva Anual Neta (post-retefuente {porcentaje(ret_cdt, 1)}, E.T. art. 395 y decretos reglamentarios): **{porcentaje(tea_neta_cdt, 2)} E.A.**\n"
+                    f"  - El simulador de Bancolombia confirma el 4%: retención de \\$74.800 sobre \\$1.870.000 de intereses (consultado el 2 de noviembre de 2026).\n"
                     f"  - Rentabilidad real neta (Ecuación de Fisher descontando inflación IPC del {porcentaje(ipc_anual, 2)}):\n"
                     f"    $$r = \\frac{{1 + \\text{{TEA neta}}}}{{1 + \\text{{IPC}}}} - 1 = \\frac{{1 + {numero(tea_neta_cdt, 4)}}}{{1 + {numero(ipc_anual, 4)}}} - 1 = \\mathbf{{{p_tex(rent_real_cdt)}}}$$\n"
                     f"- **Cuenta de Rendimientos (Nu):**\n"
                     f"  - Tasa pactada: **{porcentaje(tasa_nu_ea, 2)} E.A.**\n"
-                    f"  - Tasa Efectiva Anual Neta (post-retefuente {porcentaje(ret_nu, 1)} E.T. Art. 398-1): **{porcentaje(tea_neta_nu, 2)} E.A.**\n"
+                    f"  - Tasa Efectiva Anual Neta (post-retefuente {porcentaje(ret_nu, 1)}, E.T. art. 395 y decretos reglamentarios): **{porcentaje(tea_neta_nu, 2)} E.A.**\n"
                     f"  - Rentabilidad real neta (Ecuación de Fisher):\n"
                     f"    $$r = \\frac{{1 + {numero(tea_neta_nu, 4)}}}{{1 + {numero(ipc_anual, 4)}}} - 1 = \\mathbf{{{p_tex(rent_real_nu)}}}$$\n"
                     f"- **Conclusión:** {ganador} genera **{numero(brecha_real * 100, 2)} puntos porcentuales más de rentabilidad real neta** sobre la inflación que {perdedor}.{nota_retencion}"

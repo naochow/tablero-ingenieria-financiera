@@ -63,6 +63,12 @@
           "nombre": "DANE: boletín IPC septiembre 2026",
           "url": "https://www.dane.gov.co/files/operaciones/IPC/sep2026/bol-IPC-sep2026.pdf",
           "fecha": "7 de octubre de 2026"
+        },
+        {
+          "nombre": "Valora Analitik",
+          "url": "https://www.valoraanalitik.com/diferencias-retencion-fuente-cdt-cuenta-ahorros/",
+          "fecha": "9 de enero de 2025",
+          "nota": "Tarifas de retención: 4% para CDT y 7% para cuentas de ahorro."
         }
       ],
       "fecha_consulta": "2 de noviembre de 2026",

@@ -1,11 +1,30 @@
 """Página de supuestos, fórmulas y convenciones: memoria técnica y glosario del tablero."""
 
+import json
+from pathlib import Path
+
 import streamlit as st
 
 from componentes import estilos
+from componentes.formato import supuesto_retencion_cuenta
+from finanzas import tasas
 
 TEMA = "supuestos"
 COLOR = estilos.TEMAS[TEMA]["color"]
+
+
+def _interes_diario_caso2():
+    """Interés diario de la cuenta con los valores ingresados en el Caso 2 o, si no se ha abierto, con los del caso."""
+    if "inv_interes_diario" in st.session_state:
+        return st.session_state["inv_interes_diario"]
+    ruta = Path(__file__).resolve().parent.parent / "datos" / "casos.json"
+    with open(ruta, "r", encoding="utf-8") as f:
+        casos = json.load(f)["casos"]
+    p = next(c for c in casos if c["id"] == "inversion_bancolombia_nu")["parametros"]
+    return p["capital"] * tasas.periodica_desde_ea(p["tasa_cuenta_ea"], 360)
+
+
+interes_diario = _interes_diario_caso2()
 
 explicar = estilos.encabezado(
     TEMA,
@@ -34,9 +53,9 @@ with tab_supuestos:
                 "  - *Año comercial:* 360 días (12 meses de 30 días), estándar en la banca colombiana para créditos y CDT tradicionales.\n"
                 "  - *Año real o exacto:* 365 días (o 366 en bisiesto), utilizado en cuentas de alto rendimiento con capitalización diaria (Nu, Lulo, Ualá).\n"
                 "- **Periodicidades estándar:** Mensual (12), Bimestral (6), Trimestral (4), Semestral (2) y Anual (1).\n"
-                "- **Retención en la fuente:** Se aplican las tarifas diferenciales según el Estatuto Tributario colombiano: "
-                "**4%** sobre rendimientos de títulos de renta fija como CDT (Art. 395 E.T.) y **7%** sobre rendimientos "
-                "de depósitos a la vista y cuentas de ahorro de alto rendimiento (Art. 398-1 E.T.)."
+                "- **Retención en la fuente sobre rendimientos financieros** (E.T. art. 395 y decretos reglamentarios): "
+                "4% para CDT y 7% para cuentas de ahorro, según Valora Analitik (9 de enero de 2025).\n"
+                f"- {supuesto_retencion_cuenta(interes_diario)}"
             )
 
     with c2:
@@ -122,6 +141,7 @@ with tab_referencias:
         2. **Meza Orozco, Jhonny de Jesús.** *Matemáticas Financieras Aplicadas: Uso de las funciones de Excel y herramientas interactivas.* Ecoe Ediciones, Bogotá.
         3. **Superintendencia Financiera de Colombia (SFC).** *Circular Básica Contable y Financiera (Circular Externa 100 de 1995)*: Normas sobre equivalencia y expresión de tasas de interés y sistemas de amortización en créditos.
         4. **Congreso de la República de Colombia.** *Ley 546 de 1999 (Ley Marco de Vivienda)*: Reglamentación de los sistemas de financiación de vivienda a largo plazo.
-        5. **Estatuto Tributario de Colombia.** *Artículos 395 a 404-1*: Régimen de retención en la fuente sobre rendimientos financieros derivados de títulos de renta fija (4%) y depósitos a la vista / cuentas de ahorro (7%).
+        5. **Estatuto Tributario de Colombia.** *Artículos 395 a 404-1*: Régimen de retención en la fuente sobre rendimientos financieros.
+        6. **Valora Analitik.** "¿Cuál es la diferencia de retención en la fuente que aplica para un CDT y una cuenta de ahorros?", 9 de enero de 2025. https://www.valoraanalitik.com/diferencias-retencion-fuente-cdt-cuenta-ahorros/
         """
     )
