@@ -25,9 +25,15 @@ def test_pesos_md_escapa_el_signo():
 
 
 def test_supuesto_retencion_redondea_interes_diario():
-    assert r"unos \$5.000 con año de 360 días" in formato.supuesto_retencion_cuenta(4966.4)
-    assert r"unos \$25.000 con año de 360 días" in formato.supuesto_retencion_cuenta(24832)
-    assert r"unos \$25 con año de 360 días" in formato.supuesto_retencion_cuenta(24.8)
+    assert r"unos \$5.000 con año de 360 días" in formato.supuesto_retencion_cuenta(4966.4, 0.07)
+    assert r"unos \$25.000 con año de 360 días" in formato.supuesto_retencion_cuenta(24832, 0.07)
+    assert r"unos \$25 con año de 360 días" in formato.supuesto_retencion_cuenta(24.8, 0.07)
+
+
+def test_supuesto_retencion_usa_el_porcentaje_ingresado():
+    assert "retención del 7% se aplica" in formato.supuesto_retencion_cuenta(5000, 0.07)
+    assert "retención del 4% se aplica" in formato.supuesto_retencion_cuenta(5000, 0.04)
+    assert "retención del 7,50% se aplica" in formato.supuesto_retencion_cuenta(5000, 0.075)
 
 
 def test_porcentaje():

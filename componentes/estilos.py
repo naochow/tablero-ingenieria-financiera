@@ -253,6 +253,27 @@ def aplicar_estilos(temas_por_ruta):
             line-height: 1.25 !important;
         }}
 
+        /* Tarjeta de verificaciones: verde si todo coincide, roja si alguna falla */
+        .kpi-ok .kpi-valor {{
+            color: #34D399 !important;
+        }}
+        .kpi-falla {{
+            border-color: #FB7185 !important;
+        }}
+        .kpi-falla .kpi-valor {{
+            color: #FB7185 !important;
+        }}
+
+        /* Tabla del resumen ejecutivo: compacta para que quepan sus 7 columnas */
+        .tabla-resumen th, .tabla-resumen td {{
+            padding: 0.55rem 0.5rem !important;
+            font-size: 0.76rem !important;
+        }}
+        .tabla-resumen th {{
+            font-size: 0.68rem !important;
+            letter-spacing: 0 !important;
+        }}
+
         /* Etiqueta tipo chip de fintech */
         .etiqueta {{
             display: inline-block;

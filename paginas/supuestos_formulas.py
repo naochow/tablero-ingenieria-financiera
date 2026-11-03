@@ -13,18 +13,20 @@ TEMA = "supuestos"
 COLOR = estilos.TEMAS[TEMA]["color"]
 
 
-def _interes_diario_caso2():
-    """Interés diario de la cuenta con los valores ingresados en el Caso 2 o, si no se ha abierto, con los del caso."""
-    if "inv_interes_diario" in st.session_state:
-        return st.session_state["inv_interes_diario"]
+def _datos_supuesto_caso2():
+    """Interés diario y retención de la cuenta: lo ingresado en el Caso 2 o, si no se ha abierto, los datos del caso."""
     ruta = Path(__file__).resolve().parent.parent / "datos" / "casos.json"
     with open(ruta, "r", encoding="utf-8") as f:
         casos = json.load(f)["casos"]
     p = next(c for c in casos if c["id"] == "inversion_bancolombia_nu")["parametros"]
-    return p["capital"] * tasas.periodica_desde_ea(p["tasa_cuenta_ea"], 360)
+    interes_caso = p["capital"] * tasas.periodica_desde_ea(p["tasa_cuenta_ea"], 360)
+    return (
+        st.session_state.get("inv_interes_diario", interes_caso),
+        st.session_state.get("inv_ret_nu", p["retencion_cuenta"]),
+    )
 
 
-interes_diario = _interes_diario_caso2()
+interes_diario, retencion_cuenta = _datos_supuesto_caso2()
 
 explicar = estilos.encabezado(
     TEMA,
@@ -55,7 +57,7 @@ with tab_supuestos:
                 "- **Periodicidades estándar:** Mensual (12), Bimestral (6), Trimestral (4), Semestral (2) y Anual (1).\n"
                 "- **Retención en la fuente sobre rendimientos financieros** (E.T. art. 395 y decretos reglamentarios): "
                 "4% para CDT y 7% para cuentas de ahorro, según Valora Analitik (9 de enero de 2025).\n"
-                f"- {supuesto_retencion_cuenta(interes_diario)}"
+                f"- {supuesto_retencion_cuenta(interes_diario, retencion_cuenta)}"
             )
 
     with c2:

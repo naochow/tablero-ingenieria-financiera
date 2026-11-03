@@ -1,11 +1,13 @@
 """Página de inicio (Landing Page): Resumen ejecutivo fintech, KPIs y módulos del curso."""
 
+from html import escape
 import json
 from pathlib import Path
 import streamlit as st
 
 from componentes import estilos
 from componentes.formato import pesos, porcentaje
+from componentes.verificaciones_tablero import verificaciones_tablero
 from finanzas import amortizacion, gradientes, tasas
 
 TEMA = "principal"
@@ -17,109 +19,104 @@ def _p_html(v, d=0):
     return pesos(v, d).replace("$", "&#36;")
 
 
-# Carga dinámica de casos financieros desde datos/casos.json
+# Claves que el panel lee de cada caso de datos/casos.json
+CLAVES_CASOS = (
+    ("monto", "plazo_meses", "ofertas"),
+    ("capital", "plazo_dias", "tasa_cdt_ea", "tasa_cuenta_ea"),
+    ("a1", "gradiente_aritmetico_G", "gradiente_geometrico_g", "plazo_meses", "tasa_ea"),
+)
+
+
 def _cargar_datos_casos():
+    """Lee los casos; devuelve (casos, motivo del error). Sin casos válidos el panel no muestra cifras."""
     ruta = Path(__file__).resolve().parent.parent / "datos" / "casos.json"
-    if ruta.exists():
+    try:
         with open(ruta, "r", encoding="utf-8") as f:
-            return json.load(f)["casos"]
-    return []
+            casos = json.load(f)["casos"]
+        for caso, claves in zip(casos, CLAVES_CASOS):
+            faltan = [c for c in claves if c not in caso["parametros"]]
+            if faltan:
+                return None, f"al caso {caso.get('id', '')} le faltan {', '.join(faltan)}"
+        if len(casos) < len(CLAVES_CASOS) or len(casos[0]["parametros"]["ofertas"]) != 2:
+            return None, "se esperan 3 casos y 2 ofertas en el Caso 1"
+    except (OSError, ValueError, KeyError, TypeError) as error:
+        return None, str(error)
+    return casos, None
 
 
-casos = _cargar_datos_casos()
+casos, error_casos = _cargar_datos_casos()
+if casos is None:
+    st.error(f"No se pudo leer datos/casos.json: {error_casos}. El panel no puede mostrar cifras sin esos datos.")
+    st.stop()
 
 # Cálculos dinámicos con motor financiero UPB
-if len(casos) >= 3:
-    # Caso 1: Crédito de Vehículo (oferta de menor costo efectivo)
-    c1 = casos[0]["parametros"]
-    c1_monto = c1["monto"]
-    c1_plazo = c1["plazo_meses"]
-    c1_barata, c1_cara = sorted(
-        ({"entidad": o["entidad"], "ea": tasas.ea_desde_codigo(o["tasa_valor"], o["codigo_tasa"])} for o in c1["ofertas"]),
-        key=lambda o: o["ea"],
-    )
-    c1_mv = tasas.periodica_desde_ea(c1_barata["ea"], 12)
+# Caso 1: Crédito de Vehículo (oferta de menor costo efectivo)
+c1 = casos[0]["parametros"]
+c1_monto = c1["monto"]
+c1_plazo = c1["plazo_meses"]
+c1_barata, c1_cara = sorted(
+    ({"entidad": o["entidad"], "ea": tasas.ea_desde_codigo(o["tasa_valor"], o["codigo_tasa"])} for o in c1["ofertas"]),
+    key=lambda o: o["ea"],
+)
+c1_mv = tasas.periodica_desde_ea(c1_barata["ea"], 12)
 
-    tabla_c1_frances = amortizacion.tabla_amortizacion(c1_monto, c1_mv, c1_plazo, sistema="frances")
-    c1_int_frances = sum(r["intereses"] for r in tabla_c1_frances)
-    c1_total_frances = sum(r["pago_total"] for r in tabla_c1_frances)
+tabla_c1_frances = amortizacion.tabla_amortizacion(c1_monto, c1_mv, c1_plazo, sistema="frances")
+c1_int_frances = sum(r["intereses"] for r in tabla_c1_frances)
+c1_total_frances = sum(r["pago_total"] for r in tabla_c1_frances)
 
-    tabla_c1_aleman = amortizacion.tabla_amortizacion(c1_monto, c1_mv, c1_plazo, sistema="aleman")
-    c1_int_aleman = sum(r["intereses"] for r in tabla_c1_aleman)
-    c1_total_aleman = sum(r["pago_total"] for r in tabla_c1_aleman)
-    c1_ahorro_aleman = c1_int_frances - c1_int_aleman
+tabla_c1_aleman = amortizacion.tabla_amortizacion(c1_monto, c1_mv, c1_plazo, sistema="aleman")
+c1_int_aleman = sum(r["intereses"] for r in tabla_c1_aleman)
+c1_total_aleman = sum(r["pago_total"] for r in tabla_c1_aleman)
+c1_ahorro_aleman = c1_int_frances - c1_int_aleman
 
-    # Caso 2: CDT vs Nu (Inversión)
-    c2 = casos[1]["parametros"]
-    c2_capital = c2["capital"]
-    c2_plazo_dias = c2["plazo_dias"]
-    c2_tasa_cdt_ea = c2["tasa_cdt_ea"]
-    c2_tasa_nu_ea = c2["tasa_cuenta_ea"]
-    c2_ret_cdt = c2.get("retencion_cdt", 0.04)
-    c2_ret_nu = c2.get("retencion_cuenta", 0.07)
-    t2_base = c2_plazo_dias / 360.0
+# Caso 2: CDT vs Nu (Inversión)
+c2 = casos[1]["parametros"]
+c2_capital = c2["capital"]
+c2_plazo_dias = c2["plazo_dias"]
+c2_tasa_cdt_ea = c2["tasa_cdt_ea"]
+c2_tasa_nu_ea = c2["tasa_cuenta_ea"]
+c2_ret_cdt = c2.get("retencion_cdt", 0.04)
+c2_ret_nu = c2.get("retencion_cuenta", 0.07)
+t2_base = c2_plazo_dias / 360.0
 
-    rend_cdt_bruto = c2_capital * ((1 + c2_tasa_cdt_ea) ** t2_base - 1)
-    rend_cdt_neto = rend_cdt_bruto * (1 - c2_ret_cdt)
-    tea_neta_cdt = (1 + rend_cdt_neto / c2_capital) ** (1 / t2_base) - 1
+rend_cdt_bruto = c2_capital * ((1 + c2_tasa_cdt_ea) ** t2_base - 1)
+rend_cdt_neto = rend_cdt_bruto * (1 - c2_ret_cdt)
+tea_neta_cdt = (1 + rend_cdt_neto / c2_capital) ** (1 / t2_base) - 1
 
-    rend_nu_bruto = c2_capital * ((1 + c2_tasa_nu_ea) ** t2_base - 1)
-    rend_nu_neto = rend_nu_bruto * (1 - c2_ret_nu)
+rend_nu_bruto = c2_capital * ((1 + c2_tasa_nu_ea) ** t2_base - 1)
+rend_nu_neto = rend_nu_bruto * (1 - c2_ret_nu)
 
-    # La alternativa recomendada es la de mayor rendimiento neto
-    c2_gana, c2_pierde = sorted(
-        [
-            {"nombre": "CDT Bancolombia", "corto": "Bancolombia", "ea": c2_tasa_cdt_ea, "rend": rend_cdt_neto, "liquidez": "sin liquidez hasta el vencimiento"},
-            {"nombre": "Nu Colombia", "corto": "Nu", "ea": c2_tasa_nu_ea, "rend": rend_nu_neto, "liquidez": "liquidez 24/7"},
-        ],
-        key=lambda a: a["rend"],
-        reverse=True,
-    )
-    c2_total_gana = c2_capital + c2_gana["rend"]
-    c2_dif = c2_gana["rend"] - c2_pierde["rend"]
+# La alternativa recomendada es la de mayor rendimiento neto
+c2_gana, c2_pierde = sorted(
+    [
+        {"nombre": "CDT Bancolombia", "corto": "Bancolombia", "decision": "CDT", "ea": c2_tasa_cdt_ea, "rend": rend_cdt_neto, "liquidez": "sin liquidez hasta el vencimiento"},
+        {"nombre": "Nu Colombia", "corto": "Nu", "decision": "Nu", "ea": c2_tasa_nu_ea, "rend": rend_nu_neto, "liquidez": "liquidez 24/7"},
+    ],
+    key=lambda a: a["rend"],
+    reverse=True,
+)
+c2_total_gana = c2_capital + c2_gana["rend"]
+c2_dif = c2_gana["rend"] - c2_pierde["rend"]
 
-    # Caso 3: Fiducuenta Cuota Inicial (Gradientes)
-    c3 = casos[2]["parametros"]
-    c3_a1 = c3["a1"]
-    c3_G = c3["gradiente_aritmetico_G"]
-    c3_plazo = c3["plazo_meses"]
-    c3_tasa_ea = c3["tasa_ea"]
-    c3_tasa_mv = tasas.periodica_desde_ea(c3_tasa_ea, 12)
+# Caso 3: Fiducuenta Cuota Inicial (Gradientes)
+c3 = casos[2]["parametros"]
+c3_a1 = c3["a1"]
+c3_G = c3["gradiente_aritmetico_G"]
+c3_plazo = c3["plazo_meses"]
+c3_tasa_ea = c3["tasa_ea"]
+c3_tasa_mv = tasas.periodica_desde_ea(c3_tasa_ea, 12)
 
-    vp_c3 = gradientes.vp_aritmetico(c3_a1, c3_G, c3_tasa_mv, c3_plazo)
-    vf_c3 = gradientes.vf_gradiente(vp_c3, c3_tasa_mv, c3_plazo)
-    cuotas_c3 = gradientes.cuotas_aritmetico(c3_a1, c3_G, c3_plazo)
-    total_aportes_c3 = sum(cuotas_c3)
-    rend_c3 = vf_c3 - total_aportes_c3
-else:
-    c1_monto = 35000000
-    c1_plazo = 48
-    c1_barata = {"entidad": "Davivienda", "ea": 0.1718}
-    c1_cara = {"entidad": "Sufi (Bancolombia)", "ea": 0.2460}
-    c1_mv = 0.0133
-    c1_total_frances, c1_int_frances = 47577262, 12577262
-    c1_total_aleman, c1_ahorro_aleman = 46404750, 1172512
-    c2_tasa_cdt_ea = 0.0935
-    tea_neta_cdt = 0.0898
-    c2_gana = {"nombre": "CDT Bancolombia", "corto": "Bancolombia", "ea": 0.0935, "rend": 1795200, "liquidez": "sin liquidez hasta el vencimiento"}
-    c2_pierde = {"nombre": "Nu Colombia", "corto": "Nu", "ea": 0.0935, "rend": 1739100, "liquidez": "liquidez 24/7"}
-    c2_total_gana, c2_dif = 21795200, 56100
-    c3_a1, c3_G, c3_plazo = 500000, 25000, 36
-    c3_tasa_mv, c3_tasa_ea = 0.00726, 0.0907
-    vf_c3, total_aportes_c3, rend_c3 = 37614849, 33750000, 3864849
+vp_c3 = gradientes.vp_aritmetico(c3_a1, c3_G, c3_tasa_mv, c3_plazo)
+vf_c3 = gradientes.vf_gradiente(vp_c3, c3_tasa_mv, c3_plazo)
+cuotas_c3 = gradientes.cuotas_aritmetico(c3_a1, c3_G, c3_plazo)
+total_aportes_c3 = sum(cuotas_c3)
+rend_c3 = vf_c3 - total_aportes_c3
 
-# Verificaciones dinámicas del sistema
-verificaciones = [
-    ("Interés Simple", True),
-    ("Interés Compuesto", True),
-    ("Rentabilidad y Tasas", True),
-    ("Series Uniformes", True),
-    ("Gradientes Financieros", True),
-    ("Amortización Francés y Alemán", True),
-    ("Casos Aplicados del Mercado", True),
-]
-total_ok = sum(1 for _, ok in verificaciones if ok)
-total_modulos = len(verificaciones)
+# Verificaciones reales: cada módulo y caso contra una ruta de cálculo independiente
+verificaciones = verificaciones_tablero(casos)
+fallas = [v["nombre"] for v in verificaciones if not v["ok"]]
+total_ok = len(verificaciones) - len(fallas)
+total_verificaciones = len(verificaciones)
 
 # Top metadata bar
 st.markdown(
@@ -221,16 +218,26 @@ with k3:
     )
 
 with k4:
+    if fallas:
+        color_verif, suave_verif, icono_verif = "#FB7185", "rgba(251, 113, 133, 0.15)", "fa-triangle-exclamation"
+        clase_verif = "kpi-falla"
+        color_detalle = "#FDA4AF"
+        detalle_verif = f"Falla: {escape('; '.join(fallas))}"
+    else:
+        color_verif, suave_verif, icono_verif = "#34D399", "rgba(16, 185, 129, 0.15)", "fa-circle-check"
+        clase_verif = "kpi-ok"
+        color_detalle = "#94A3B8"
+        detalle_verif = "Verificaciones del tablero"
     st.markdown(
         f"""
-        <div class="kpi" style="--color: #10B981; --suave: rgba(16, 185, 129, 0.15);">
+        <div class="kpi {clase_verif}" style="--color: {color_verif}; --suave: {suave_verif};">
           <div style="display: flex; justify-content: space-between; align-items: center; color: #94A3B8; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">
             <span>VERIFICACIONES</span>
-            <span class="kpi-icono" style="width: 1.8rem; height: 1.8rem; font-size: 1rem;"><i class="fa-solid fa-circle-check"></i></span>
+            <span class="kpi-icono" style="width: 1.8rem; height: 1.8rem; font-size: 1rem;"><i class="fa-solid {icono_verif}"></i></span>
           </div>
-          <div class="kpi-valor" style="color: #34D399; font-size: 1.45rem; margin-top: 0.3rem;">{total_ok} / {total_modulos} OK</div>
-          <div style="font-size: 0.75rem; color: #94A3B8; margin-top: 0.25rem; display: flex; align-items: center; gap: 0.3rem;">
-            <i class="fa-solid fa-check-double" style="color: #10B981;"></i> 54 tests unitarios aprobados
+          <div class="kpi-valor" style="margin-top: 0.3rem;">{total_ok} / {total_verificaciones} OK</div>
+          <div style="font-size: 0.75rem; color: {color_detalle}; margin-top: 0.25rem;">
+            {detalle_verif}
           </div>
         </div>
         """,
@@ -260,7 +267,7 @@ with estilos.tarjeta("tabla_ejecutiva"):
     st.markdown(
         f"""
         <div style="overflow-x: auto; margin-top: 1rem;">
-          <table style="width: 100%; text-align: left; border-collapse: separate; border-spacing: 0;">
+          <table class="tabla-resumen" style="width: 100%; text-align: left; border-collapse: separate; border-spacing: 0;">
             <thead>
               <tr>
                 <th>Caso / Producto</th>
@@ -269,6 +276,7 @@ with estilos.tarjeta("tabla_ejecutiva"):
                 <th>Total Pagado / Recibido</th>
                 <th>Intereses Totales</th>
                 <th>Decisión Recomendada</th>
+                <th>Detalle de la Decisión</th>
               </tr>
             </thead>
             <tbody>
@@ -283,10 +291,11 @@ with estilos.tarjeta("tabla_ejecutiva"):
                 <td>{_p_html(c1_total_frances)} (Francés) vs {_p_html(c1_total_aleman)} (Alemán)</td>
                 <td style="color: #FB7185; font-weight: 600;">-{_p_html(c1_int_frances)} COP (Francés)</td>
                 <td style="font-family: 'Inter', sans-serif;">
-                  <span class="etiqueta" style="--oscuro: #6366F1; --suave: rgba(99, 102, 241, 0.15); border-color: rgba(99, 102, 241, 0.4); color: #A5B4FC; display: inline-block; white-space: normal; line-height: 1.35; max-width: 250px;">
-                    {c1_barata['entidad']} con Abono Constante (Ahorro {_p_html(c1_ahorro_aleman)} en intereses)
+                  <span class="etiqueta" style="--oscuro: #6366F1; --suave: rgba(99, 102, 241, 0.15); border-color: rgba(99, 102, 241, 0.4); color: #A5B4FC; display: inline-block; white-space: nowrap;">
+                    {c1_barata['entidad']}
                   </span>
                 </td>
+                <td style="font-family: 'Inter', sans-serif;">Con abono constante a capital ahorra {_p_html(c1_ahorro_aleman)} en intereses</td>
               </tr>
               <tr>
                 <td style="font-family: 'Inter', sans-serif; font-weight: 600; color: #FFFFFF;">
@@ -299,10 +308,11 @@ with estilos.tarjeta("tabla_ejecutiva"):
                 <td>{_p_html(c2_total_gana)} COP neto ({c2_gana['corto']})</td>
                 <td style="color: #34D399; font-weight: 600;">+{_p_html(c2_gana['rend'])} COP netos</td>
                 <td style="font-family: 'Inter', sans-serif;">
-                  <span class="etiqueta" style="--oscuro: #10B981; --suave: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.4); color: #34D399; display: inline-block; white-space: normal; line-height: 1.35; max-width: 250px;">
-                    {c2_gana['nombre']} (+{_p_html(c2_dif)} netos; {c2_gana['liquidez']})
+                  <span class="etiqueta" style="--oscuro: #10B981; --suave: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.4); color: #34D399; display: inline-block; white-space: nowrap;">
+                    {c2_gana['decision']}
                   </span>
                 </td>
+                <td style="font-family: 'Inter', sans-serif;">+{_p_html(c2_dif)} netos; {c2_gana['liquidez']}</td>
               </tr>
               <tr>
                 <td style="font-family: 'Inter', sans-serif; font-weight: 600; color: #FFFFFF;">
@@ -313,10 +323,11 @@ with estilos.tarjeta("tabla_ejecutiva"):
                 <td>{_p_html(vf_c3)} COP (Capital acumulado)</td>
                 <td style="color: #34D399; font-weight: 600;">+{_p_html(rend_c3)} COP rendimientos</td>
                 <td style="font-family: 'Inter', sans-serif;">
-                  <span class="etiqueta" style="--oscuro: #F59E0B; --suave: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.4); color: #FBBF24; display: inline-block; white-space: normal; line-height: 1.35; max-width: 250px;">
-                    Gradiente Aritmético (Facilidad inicial {_p_html(c3_a1)})
+                  <span class="etiqueta" style="--oscuro: #F59E0B; --suave: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.4); color: #FBBF24; display: inline-block; white-space: nowrap;">
+                    Gradiente aritmético
                   </span>
                 </td>
+                <td style="font-family: 'Inter', sans-serif;">Facilidad inicial: primera cuota de {_p_html(c3_a1)}</td>
               </tr>
             </tbody>
           </table>

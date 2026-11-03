@@ -459,7 +459,7 @@ elif caso_seleccionado_id == "inversion_bancolombia_nu":
         )
         # Se guarda para que Supuestos muestre la misma cifra con los valores ingresados aquí
         st.session_state["inv_interes_diario"] = capital_inv * tasas.periodica_desde_ea(tasa_nu_ea, 360)
-        st.caption(supuesto_retencion_cuenta(st.session_state["inv_interes_diario"]))
+        st.caption(supuesto_retencion_cuenta(st.session_state["inv_interes_diario"], ret_nu))
         ipc_anual = entradas.campo_tasa(
             "Inflación anual (IPC)",
             "inv_ipc",
