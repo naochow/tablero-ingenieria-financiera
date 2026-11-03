@@ -12,7 +12,7 @@ from finanzas import tasas
 
 _PREFIJO_PORCENTAJE = "_pct_"
 
-TIPOS_TASA = {"periodica": "Periódica", "nominal": "Nominal", "efectiva": "Efectiva (EA)"}
+TIPOS_TASA = {"periodica": "Periódica", "nominal": "Nominal", "efectiva": "Efectiva"}
 PERIODICIDADES = {p: p.capitalize() for p in tasas.PERIODOS_POR_ANO}
 MODALIDADES = {"vencida": "Vencida", "anticipada": "Anticipada"}
 
@@ -109,11 +109,9 @@ def selector_tasa(prefijo, valor_inicial=0.01, tipo="periodica", periodicidad="m
     Claves en session_state: <prefijo>_tasa, _tipo, _periodicidad, _modalidad.
     """
     valor = campo_tasa(etiqueta, f"{prefijo}_tasa", valor_inicial, maximo=0.99)
-    c1, c2 = st.columns(2)
-    with c1:
-        tipo = campo_lista("Tipo", list(TIPOS_TASA), f"{prefijo}_tipo", tipo, TIPOS_TASA)
-    with c2:
-        modalidad = campo_lista("Modalidad", list(MODALIDADES), f"{prefijo}_modalidad", modalidad, MODALIDADES)
+    # Uno debajo del otro: en dos columnas la tarjeta de datos los deja tan angostos que cortan el texto
+    tipo = campo_lista("Tipo", list(TIPOS_TASA), f"{prefijo}_tipo", tipo, TIPOS_TASA)
+    modalidad = campo_lista("Modalidad", list(MODALIDADES), f"{prefijo}_modalidad", modalidad, MODALIDADES)
     if tipo == "efectiva":
         periodicidad = "anual"
         descripcion = f"{porcentaje(valor)} efectiva anual"

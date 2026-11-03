@@ -227,7 +227,7 @@ with k4:
         color_verif, suave_verif, icono_verif = "#34D399", "rgba(16, 185, 129, 0.15)", "fa-circle-check"
         clase_verif = "kpi-ok"
         color_detalle = "#94A3B8"
-        detalle_verif = "Verificaciones del tablero"
+        detalle_verif = "Fórmulas contra método alternativo"
     st.markdown(
         f"""
         <div class="kpi {clase_verif}" style="--color: {color_verif}; --suave: {suave_verif};">

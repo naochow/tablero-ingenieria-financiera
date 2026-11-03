@@ -301,10 +301,10 @@ if caso_seleccionado_id == "vehiculo_sufi_davivienda":
         with estilos.tarjeta("veh_veredicto"):
             st.markdown("#### 🎯 Respuestas a las Preguntas Clave de la Rúbrica de Evaluación")
             tab_p1, tab_p2, tab_p3, tab_p4 = st.tabs([
-                "1. Costo Real y Tasas",
-                "2. Total Pagado e Intereses",
-                "3. Sensibilidad (Tasa / Plazo)",
-                "4. Alternativa Recomendada y Argumentos",
+                "1. Costo real",
+                "2. Total e intereses",
+                "3. Sensibilidad",
+                "4. Recomendación",
             ])
 
             with tab_p1:
@@ -439,14 +439,14 @@ elif caso_seleccionado_id == "inversion_bancolombia_nu":
         c_ret1, c_ret2 = st.columns(2)
         with c_ret1:
             ret_cdt = entradas.campo_tasa(
-                "Retención CDT (4%)",
+                "Retención CDT",
                 "inv_ret_cdt",
                 p.get("retencion_cdt", 0.04),
                 ayuda="4% para CDT (E.T. art. 395 y decretos reglamentarios).",
             )
         with c_ret2:
             ret_nu = entradas.campo_tasa(
-                "Retención Cuenta (7%)",
+                "Retención cuenta",
                 "inv_ret_nu",
                 p.get("retencion_cuenta", 0.07),
                 ayuda="7% para cuentas de ahorro (E.T. art. 395 y decretos reglamentarios).",
@@ -574,10 +574,10 @@ elif caso_seleccionado_id == "inversion_bancolombia_nu":
         with estilos.tarjeta("inv_veredicto"):
             st.markdown("#### 🎯 Respuestas a las Preguntas Clave de la Rúbrica de Evaluación")
             tab_p1, tab_p2, tab_p3, tab_p4 = st.tabs([
-                "1. Rentabilidad Real y Neta",
-                "2. Total Recibido e Intereses",
-                "3. Sensibilidad (Plazo / Inflación)",
-                "4. Alternativa Recomendada y Argumentos",
+                "1. Rentabilidad real",
+                "2. Total e intereses",
+                "3. Sensibilidad",
+                "4. Recomendación",
             ])
 
             with tab_p1:
@@ -842,10 +842,10 @@ elif caso_seleccionado_id == "ahorro_cuota_inicial_gradientes":
         with estilos.tarjeta("grad_veredicto"):
             st.markdown("#### 🎯 Respuestas a las Preguntas Clave de la Rúbrica de Evaluación")
             tab_p1, tab_p2, tab_p3, tab_p4 = st.tabs([
-                "1. Rentabilidad Real del Fondo",
-                "2. Total Aportado e Intereses",
-                "3. Sensibilidad (Gradiente Aritmético vs Geométrico)",
-                "4. Alternativa Recomendada y Argumentos",
+                "1. Rentabilidad real",
+                "2. Total e intereses",
+                "3. Sensibilidad",
+                "4. Recomendación",
             ])
 
             with tab_p1:
