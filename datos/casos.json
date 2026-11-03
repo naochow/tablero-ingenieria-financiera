@@ -85,7 +85,7 @@
     {
       "id": "ahorro_cuota_inicial_gradientes",
       "titulo": "Caso 3: Ahorro Programado para Cuota Inicial de Vivienda (Fiducuenta Bancolombia)",
-      "descripcion": "Plan de ahorro programado a 36 meses en el Fondo de Inversión Colectiva Fiducuenta de Fiduciaria Bancolombia para alcanzar la cuota inicial del 30% de una vivienda (meta \\$36.900.000 COP). Se usa la rentabilidad del último año de 9,07% E.A., rentabilidad reportada por el fondo, que ya refleja la comisión de administración. No está garantizada. Se evalúa aporte inicial de \\$500.000 COP con gradiente aritmético (+ \\$25.000/mes) o geométrico (+ 2%/mes) vs. cuota fija equivalente.",
+      "descripcion": "Plan de ahorro programado a 36 meses en el Fondo de Inversión Colectiva Fiducuenta de Fiduciaria Bancolombia para alcanzar una meta de ahorro para la cuota inicial (supuesto), editable. Se usa la rentabilidad del último año de 9,07% E.A., rentabilidad reportada por el fondo, que ya refleja la comisión de administración. No está garantizada. Se evalúa aporte inicial de \\$500.000 COP con gradiente aritmético (+ \\$25.000/mes) o geométrico (+ 2%/mes) vs. cuota fija equivalente.",
       "categoria": "Ahorro e Inversión",
       "temas": ["Gradiente Aritmético", "Gradiente Geométrico", "Cuota Uniforme Equivalente"],
       "entidades": "Fiduciaria Bancolombia (Fiducuenta)",
@@ -103,7 +103,8 @@
         "plazo_meses": 36,
         "tasa_ea": 0.0907,
         "gradiente_aritmetico_G": 25000,
-        "gradiente_geometrico_g": 0.02
+        "gradiente_geometrico_g": 0.02,
+        "meta_ahorro": 36000000
       }
     }
   ]

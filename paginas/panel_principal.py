@@ -1,14 +1,13 @@
 """Página de inicio (Landing Page): Resumen ejecutivo fintech, KPIs y módulos del curso."""
 
 from html import escape
-import json
-from pathlib import Path
 import streamlit as st
 
-from componentes import estilos
-from componentes.formato import pesos, porcentaje
+from componentes import decisiones, estilos
+from componentes.datos_casos import cargar_casos_o_detener
+from componentes.formato import pesos, porcentaje, porcentaje_compacto
 from componentes.verificaciones_tablero import verificaciones_tablero
-from finanzas import amortizacion, gradientes, tasas
+from finanzas import amortizacion, tasas
 
 TEMA = "principal"
 COLOR = estilos.TEMAS[TEMA]["color"]
@@ -19,35 +18,7 @@ def _p_html(v, d=0):
     return pesos(v, d).replace("$", "&#36;")
 
 
-# Claves que el panel lee de cada caso de datos/casos.json
-CLAVES_CASOS = (
-    ("monto", "plazo_meses", "ofertas"),
-    ("capital", "plazo_dias", "tasa_cdt_ea", "tasa_cuenta_ea"),
-    ("a1", "gradiente_aritmetico_G", "gradiente_geometrico_g", "plazo_meses", "tasa_ea"),
-)
-
-
-def _cargar_datos_casos():
-    """Lee los casos; devuelve (casos, motivo del error). Sin casos válidos el panel no muestra cifras."""
-    ruta = Path(__file__).resolve().parent.parent / "datos" / "casos.json"
-    try:
-        with open(ruta, "r", encoding="utf-8") as f:
-            casos = json.load(f)["casos"]
-        for caso, claves in zip(casos, CLAVES_CASOS):
-            faltan = [c for c in claves if c not in caso["parametros"]]
-            if faltan:
-                return None, f"al caso {caso.get('id', '')} le faltan {', '.join(faltan)}"
-        if len(casos) < len(CLAVES_CASOS) or len(casos[0]["parametros"]["ofertas"]) != 2:
-            return None, "se esperan 3 casos y 2 ofertas en el Caso 1"
-    except (OSError, ValueError, KeyError, TypeError) as error:
-        return None, str(error)
-    return casos, None
-
-
-casos, error_casos = _cargar_datos_casos()
-if casos is None:
-    st.error(f"No se pudo leer datos/casos.json: {error_casos}. El panel no puede mostrar cifras sin esos datos.")
-    st.stop()
+casos = cargar_casos_o_detener()
 
 # Cálculos dinámicos con motor financiero UPB
 # Caso 1: Crédito de Vehículo (oferta de menor costo efectivo)
@@ -75,8 +46,8 @@ c2_capital = c2["capital"]
 c2_plazo_dias = c2["plazo_dias"]
 c2_tasa_cdt_ea = c2["tasa_cdt_ea"]
 c2_tasa_nu_ea = c2["tasa_cuenta_ea"]
-c2_ret_cdt = c2.get("retencion_cdt", 0.04)
-c2_ret_nu = c2.get("retencion_cuenta", 0.07)
+c2_ret_cdt = c2["retencion_cdt"]
+c2_ret_nu = c2["retencion_cuenta"]
 t2_base = c2_plazo_dias / 360.0
 
 rend_cdt_bruto = c2_capital * ((1 + c2_tasa_cdt_ea) ** t2_base - 1)
@@ -87,14 +58,9 @@ rend_nu_bruto = c2_capital * ((1 + c2_tasa_nu_ea) ** t2_base - 1)
 rend_nu_neto = rend_nu_bruto * (1 - c2_ret_nu)
 
 # La alternativa recomendada es la de mayor rendimiento neto
-c2_gana, c2_pierde = sorted(
-    [
-        {"nombre": "CDT Bancolombia", "corto": "Bancolombia", "decision": "CDT", "ea": c2_tasa_cdt_ea, "rend": rend_cdt_neto, "liquidez": "sin liquidez hasta el vencimiento"},
-        {"nombre": "Nu Colombia", "corto": "Nu", "decision": "Nu", "ea": c2_tasa_nu_ea, "rend": rend_nu_neto, "liquidez": "liquidez 24/7"},
-    ],
-    key=lambda a: a["rend"],
-    reverse=True,
-)
+c2_cdt = {"nombre": "CDT Bancolombia", "corto": "Bancolombia", "decision": "CDT", "ea": c2_tasa_cdt_ea, "rend": rend_cdt_neto, "liquidez": "sin liquidez hasta el vencimiento"}
+c2_nu = {"nombre": "Nu Colombia", "corto": "Nu", "decision": "Nu", "ea": c2_tasa_nu_ea, "rend": rend_nu_neto, "liquidez": "liquidez 24/7"}
+c2_gana, c2_pierde = (c2_nu, c2_cdt) if decisiones.gana_cuenta(rend_nu_neto, rend_cdt_neto) else (c2_cdt, c2_nu)
 c2_total_gana = c2_capital + c2_gana["rend"]
 c2_dif = c2_gana["rend"] - c2_pierde["rend"]
 
@@ -102,15 +68,22 @@ c2_dif = c2_gana["rend"] - c2_pierde["rend"]
 c3 = casos[2]["parametros"]
 c3_a1 = c3["a1"]
 c3_G = c3["gradiente_aritmetico_G"]
+c3_g = c3["gradiente_geometrico_g"]
 c3_plazo = c3["plazo_meses"]
+c3_meta = c3["meta_ahorro"]
 c3_tasa_ea = c3["tasa_ea"]
 c3_tasa_mv = tasas.periodica_desde_ea(c3_tasa_ea, 12)
 
-vp_c3 = gradientes.vp_aritmetico(c3_a1, c3_G, c3_tasa_mv, c3_plazo)
-vf_c3 = gradientes.vf_gradiente(vp_c3, c3_tasa_mv, c3_plazo)
-cuotas_c3 = gradientes.cuotas_aritmetico(c3_a1, c3_G, c3_plazo)
-total_aportes_c3 = sum(cuotas_c3)
-rend_c3 = vf_c3 - total_aportes_c3
+# La recomendación compara los dos planes con la meta de ahorro
+c3_plan, _ = decisiones.plan_recomendado(decisiones.comparar_planes(c3_a1, c3_G, c3_g, c3_tasa_mv, c3_plazo, c3_meta))
+vf_c3 = c3_plan["vf"]
+rend_c3 = vf_c3 - c3_plan["aportes"]
+c3_incremento = f"+{_p_html(c3_G)}/mes" if c3_plan["clave"] == "aritmetico" else f"+{porcentaje(c3_g)}/mes"
+c3_frente_meta = (
+    f"Supera la meta de {_p_html(c3_meta)} por {_p_html(c3_plan['diferencia_meta'])}"
+    if c3_plan["alcanza"]
+    else f"Queda {_p_html(-c3_plan['diferencia_meta'])} por debajo de la meta de {_p_html(c3_meta)}"
+)
 
 # Verificaciones reales: cada módulo y caso contra una ruta de cálculo independiente
 verificaciones = verificaciones_tablero(casos)
@@ -127,10 +100,6 @@ st.markdown(
           Taller Final • 20%
         </span>
         <span style="font-size: 0.85rem; font-weight: 600; color: #E2E8F0;">Panel Principal de Síntesis</span>
-      </div>
-      <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; color: #94A3B8; background: #0F172A; border: 1px solid #1E293B; padding: 0.25rem 0.75rem; border-radius: 9999px;">
-        <i class="fa-solid fa-calendar-check" style="color: #6366F1;"></i>
-        <span>Entrega: Octubre 29, 2026</span>
       </div>
     </div>
     """,
@@ -193,7 +162,7 @@ with k2:
           </div>
           <div class="kpi-valor" style="color: #FFFFFF; font-size: 1.45rem; margin-top: 0.3rem;">{porcentaje(c2_tasa_cdt_ea, 2)} <span style="font-size: 0.75rem; color: #94A3B8; font-weight: normal;">E.A.</span></div>
           <div style="font-size: 0.75rem; color: #34D399; margin-top: 0.25rem; display: flex; align-items: center; gap: 0.3rem;">
-            <i class="fa-solid fa-shield-halved"></i> TEA Neta: {porcentaje(tea_neta_cdt, 2)} (Ret. 4%)
+            <i class="fa-solid fa-shield-halved"></i> TEA Neta: {porcentaje(tea_neta_cdt, 2)} (Ret. {porcentaje_compacto(c2_ret_cdt)})
           </div>
         </div>
         """,
@@ -210,7 +179,7 @@ with k3:
           </div>
           <div class="kpi-valor" style="color: #FFFFFF; font-size: 1.45rem; margin-top: 0.3rem;">{_p_html(vf_c3)} <span style="font-size: 0.75rem; color: #94A3B8; font-weight: normal;">VF</span></div>
           <div style="font-size: 0.75rem; color: #FBBF24; margin-top: 0.25rem; display: flex; align-items: center; gap: 0.3rem;">
-            <i class="fa-solid fa-arrow-trend-up"></i> Gradiente: +{_p_html(c3_G)}/mes
+            <i class="fa-solid fa-arrow-trend-up"></i> Gradiente: {c3_incremento}
           </div>
         </div>
         """,
@@ -324,10 +293,10 @@ with estilos.tarjeta("tabla_ejecutiva"):
                 <td style="color: #34D399; font-weight: 600;">+{_p_html(rend_c3)} COP rendimientos</td>
                 <td style="font-family: 'Inter', sans-serif;">
                   <span class="etiqueta" style="--oscuro: #F59E0B; --suave: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.4); color: #FBBF24; display: inline-block; white-space: nowrap;">
-                    Gradiente aritmético
+                    {c3_plan['nombre']}
                   </span>
                 </td>
-                <td style="font-family: 'Inter', sans-serif;">Facilidad inicial: primera cuota de {_p_html(c3_a1)}</td>
+                <td style="font-family: 'Inter', sans-serif;">{c3_frente_meta}; primera cuota de {_p_html(c3_a1)}</td>
               </tr>
             </tbody>
           </table>

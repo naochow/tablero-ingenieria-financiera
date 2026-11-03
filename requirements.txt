@@ -1,8 +1,8 @@
 # Dependencias del Tablero de Ingeniería Financiera
 # Streamlit Community Cloud instala este archivo al desplegar.
 
-# Interfaz (st.navigation requiere 1.36 o superior)
-streamlit>=1.40,<2.0
+# Interfaz (la app usa width="stretch" en botones y gráficos; probada desde 1.50)
+streamlit>=1.50,<2.0
 
 # Datos y cálculo
 pandas>=2.2,<3.0

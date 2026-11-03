@@ -1,32 +1,22 @@
 """Página de supuestos, fórmulas y convenciones: memoria técnica y glosario del tablero."""
 
-import json
-from pathlib import Path
-
 import streamlit as st
 
 from componentes import estilos
+from componentes.datos_casos import cargar_casos_o_detener
 from componentes.formato import supuesto_retencion_cuenta
 from finanzas import tasas
 
 TEMA = "supuestos"
 COLOR = estilos.TEMAS[TEMA]["color"]
 
-
-def _datos_supuesto_caso2():
-    """Interés diario y retención de la cuenta: lo ingresado en el Caso 2 o, si no se ha abierto, los datos del caso."""
-    ruta = Path(__file__).resolve().parent.parent / "datos" / "casos.json"
-    with open(ruta, "r", encoding="utf-8") as f:
-        casos = json.load(f)["casos"]
-    p = next(c for c in casos if c["id"] == "inversion_bancolombia_nu")["parametros"]
-    interes_caso = p["capital"] * tasas.periodica_desde_ea(p["tasa_cuenta_ea"], 360)
-    return (
-        st.session_state.get("inv_interes_diario", interes_caso),
-        st.session_state.get("inv_ret_nu", p["retencion_cuenta"]),
-    )
-
-
-interes_diario, retencion_cuenta = _datos_supuesto_caso2()
+casos = cargar_casos_o_detener()
+# Lo ingresado en el Caso 2 o, si no se ha abierto, los datos del caso
+p_cuenta = next(c for c in casos if c["id"] == "inversion_bancolombia_nu")["parametros"]
+interes_diario = st.session_state.get(
+    "inv_interes_diario", p_cuenta["capital"] * tasas.periodica_desde_ea(p_cuenta["tasa_cuenta_ea"], 360)
+)
+retencion_cuenta = st.session_state.get("inv_ret_nu", p_cuenta["retencion_cuenta"])
 
 explicar = estilos.encabezado(
     TEMA,
@@ -53,7 +43,8 @@ with tab_supuestos:
                 "como pivote central.\n"
                 "- **Convención de días en el año:**\n"
                 "  - *Año comercial:* 360 días (12 meses de 30 días), estándar en la banca colombiana para créditos y CDT tradicionales.\n"
-                "  - *Año real o exacto:* 365 días (o 366 en bisiesto), utilizado en cuentas de alto rendimiento con capitalización diaria (Nu, Lulo, Ualá).\n"
+                "  - *Año real o exacto:* 365 días (o 366 en bisiesto). "
+                "El Caso 2 usa 360 días en ambas alternativas para compararlas con la misma base.\n"
                 "- **Periodicidades estándar:** Mensual (12), Bimestral (6), Trimestral (4), Semestral (2) y Anual (1).\n"
                 "- **Retención en la fuente sobre rendimientos financieros** (E.T. art. 395 y decretos reglamentarios): "
                 "4% para CDT y 7% para cuentas de ahorro, según Valora Analitik (9 de enero de 2025).\n"
@@ -145,5 +136,6 @@ with tab_referencias:
         4. **Congreso de la República de Colombia.** *Ley 546 de 1999 (Ley Marco de Vivienda)*: Reglamentación de los sistemas de financiación de vivienda a largo plazo.
         5. **Estatuto Tributario de Colombia.** *Artículos 395 a 404-1*: Régimen de retención en la fuente sobre rendimientos financieros.
         6. **Valora Analitik.** "¿Cuál es la diferencia de retención en la fuente que aplica para un CDT y una cuenta de ahorros?", 9 de enero de 2025. https://www.valoraanalitik.com/diferencias-retencion-fuente-cdt-cuenta-ahorros/
+        7. **Fogafín.** Resolución JD 001 de 2026 (20 de mayo de 2026), tope de \\$50.000.000 por persona en cada entidad. https://www.fogafin.gov.co/sites/default/files/2026-05/Resolucion%20JD%20001%20de%202026.pdf
         """
     )

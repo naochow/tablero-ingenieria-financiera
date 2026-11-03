@@ -1,13 +1,12 @@
 """Página de casos aplicados: resolución interactiva de decisiones financieras reales."""
 
 import io
-import json
-from pathlib import Path
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-from componentes import entradas, estilos, graficos
+from componentes import decisiones, entradas, estilos, graficos
+from componentes.datos_casos import cargar_casos_o_detener
 from componentes.formato import escapar_md, numero, pesos, pesos_md, porcentaje, supuesto_retencion_cuenta
 from componentes.verificacion import tarjeta_verificacion
 from finanzas import amortizacion, gradientes, series, tasas
@@ -25,94 +24,10 @@ COLOR_ALEMAN = estilos.TEMAS["series_uniformes"]["color"]
 COLOR_INTERESES = estilos.INTERESES
 COLOR_GRADIENTE = estilos.TEMAS["gradientes"]["color"]
 
-# Cargar casos desde datos/casos.json
-RUTA_CASOS = Path("datos/casos.json")
+TOPE_FOGAFIN = 50_000_000
+URL_FOGAFIN = "https://www.fogafin.gov.co/sites/default/files/2026-05/Resolucion%20JD%20001%20de%202026.pdf"
 
-FALLBACK_INFO = {
-    "vehiculo_sufi_davivienda": {
-        "entidades": "Sufi (Grupo Bancolombia) vs. Banco Davivienda",
-        "fecha_consulta": "2 de noviembre de 2026",
-        "fuentes": [
-            {
-                "nombre": "Simulador Sufi",
-                "url": "https://simulador.sufi.apps.bancolombia.com/",
-                "fecha": "2 de noviembre de 2026",
-                "nota": "Sufi: tasa de política con corte a octubre de 2025, según aclara el simulador.",
-            },
-            {
-                "nombre": "Simulador de vehículo Davivienda",
-                "url": "https://misfinanzasencasa.davivienda.com/finanzas-personales/simuladores/simulador-de-credito-de-vehiculo/",
-                "fecha": "2 de noviembre de 2026",
-            },
-        ],
-    },
-    "inversion_bancolombia_nu": {
-        "entidades": "Bancolombia (CDT Físico) vs. Nu Colombia (Cajitas de Ahorro)",
-        "fecha_consulta": "2 de noviembre de 2026",
-        "fuentes": [
-            {
-                "nombre": "Simulador CDT Bancolombia",
-                "url": "https://www.bancolombia.com/personas/productos/inversiones/simulador-cdt",
-                "fecha": "2 de noviembre de 2026",
-            },
-            {
-                "nombre": "Forbes Colombia",
-                "url": "https://forbes.co/economia-y-finanzas/donde-poner-sus-ahorros-para-ganar-mas-intereses-estas-son-las-tasas-que-ofrecen-los-bancos-en-colombia",
-                "fecha": "20 de octubre de 2026",
-                "nota": "Tasa de las Cajitas de Nu para clientes regulares, informada para octubre de 2026.",
-            },
-            {
-                "nombre": "DANE: boletín IPC septiembre 2026",
-                "url": "https://www.dane.gov.co/files/operaciones/IPC/sep2026/bol-IPC-sep2026.pdf",
-                "fecha": "7 de octubre de 2026",
-            },
-            {
-                "nombre": "Valora Analitik",
-                "url": "https://www.valoraanalitik.com/diferencias-retencion-fuente-cdt-cuenta-ahorros/",
-                "fecha": "9 de enero de 2025",
-                "nota": "Tarifas de retención: 4% para CDT y 7% para cuentas de ahorro.",
-            },
-        ],
-        "parametros": {
-            "retencion_cdt": 0.04,
-            "retencion_cuenta": 0.07,
-            "tasa_cuenta_ea": 0.0935,
-        },
-    },
-    "ahorro_cuota_inicial_gradientes": {
-        "entidades": "Fiduciaria Bancolombia (Fiducuenta)",
-        "fecha_consulta": "2 de noviembre de 2026",
-        "fuentes": [
-            {
-                "nombre": "Rankia Colombia",
-                "url": "https://www.rankia.co/blog/fondos-inversion-colectiva-colombia/4682852-fiducuenta-bancolombia-beneficios-comisiones",
-                "fecha": "22 de octubre de 2026",
-                "nota": "Datos del informe diario de rentabilidades de Fiduciaria Bancolombia.",
-            },
-        ],
-    },
-}
-
-
-def cargar_casos():
-    try:
-        with open(RUTA_CASOS, "r", encoding="utf-8") as f:
-            casos_cargados = json.load(f)["casos"]
-    except Exception:
-        casos_cargados = []
-
-    for c in casos_cargados:
-        fb = FALLBACK_INFO.get(c["id"], {})
-        if not c.get("entidades"):
-            c["entidades"] = fb.get("entidades", "")
-        if not c.get("fecha_consulta"):
-            c["fecha_consulta"] = fb.get("fecha_consulta", "")
-        if not c.get("fuentes"):
-            c["fuentes"] = fb.get("fuentes", [])
-    return casos_cargados
-
-
-casos = cargar_casos()
+casos = cargar_casos_o_detener()
 titulos_casos = {c["id"]: c["titulo"] for c in casos}
 
 explicar = estilos.encabezado(
@@ -143,10 +58,9 @@ caso_seleccionado_id = st.segmented_control(
 )
 
 caso_actual = next(c for c in casos if c["id"] == caso_seleccionado_id)
-fallback = FALLBACK_INFO.get(caso_actual["id"], {})
-entidades_txt = caso_actual.get("entidades") or fallback.get("entidades", "")
-fecha_txt = caso_actual.get("fecha_consulta") or fallback.get("fecha_consulta", "")
-fuentes = caso_actual.get("fuentes") or fallback.get("fuentes", [])
+entidades_txt = caso_actual["entidades"]
+fecha_txt = caso_actual["fecha_consulta"]
+fuentes = caso_actual["fuentes"]
 
 with estilos.tarjeta("caso_header"):
     c1, c2 = st.columns([3, 1])
@@ -347,11 +261,28 @@ if caso_seleccionado_id == "vehiculo_sufi_davivienda":
                 tasa_mv_sens = tasa_mv + 0.001
                 tabla_sens = amortizacion.tabla_amortizacion(monto_vehiculo, tasa_mv_sens, plazo_meses, sistema="frances")
                 interes_sens = amortizacion.resumen_amortizacion(tabla_sens)["total_intereses"] - res_frances["total_intereses"]
+
+                def _resumen_plazo(plazo):
+                    return amortizacion.resumen_amortizacion(amortizacion.tabla_amortizacion(monto_vehiculo, tasa_mv, plazo, sistema="frances"))
+
+                intereses_base, cuota_base = res_frances["total_intereses"], res_frances["cuota_inicial"]
+                linea_plazo_corto = ""
+                if plazo_meses > 12:
+                    corto = _resumen_plazo(plazo_meses - 12)
+                    linea_plazo_corto = (
+                        f"  - Si reduces el plazo de {plazo_meses} a **{plazo_meses - 12} meses**, el interés total en cuota fija cae de "
+                        f"**{pesos_md(intereses_base)}** a **{pesos_md(corto['total_intereses'])}** "
+                        f"(−{porcentaje(1 - corto['total_intereses'] / intereses_base, 1)}), pero la cuota mensual sube de "
+                        f"**{pesos_md(cuota_base)}** a **{pesos_md(corto['cuota_inicial'])}**.\n"
+                    )
+                largo = _resumen_plazo(plazo_meses + 12)
                 st.markdown(
                     f"**¿Cómo cambia el resultado si varían la tasa, el plazo o la cuota?**\n"
                     f"- **Impacto del plazo:**\n"
-                    f"  - Si reduces el plazo de 48 a **36 meses**, el interés total en cuota fija cae de **{pesos_md(res_frances['total_intereses'])}** a un valor menor, pero la cuota mensual sube para cubrir el capital en menos tiempo.\n"
-                    f"  - Si extiendes el plazo a **60 meses**, la cuota mensual baja brindando holgura inmediata, pero el sobrecosto por intereses totales pagados sube más de un **25%**.\n"
+                    f"{linea_plazo_corto}"
+                    f"  - Si extiendes el plazo a **{plazo_meses + 12} meses**, la cuota mensual baja de **{pesos_md(cuota_base)}** a **{pesos_md(largo['cuota_inicial'])}**, "
+                    f"pero los intereses totales suben de **{pesos_md(intereses_base)}** a **{pesos_md(largo['total_intereses'])}** "
+                    f"(+{porcentaje(largo['total_intereses'] / intereses_base - 1, 1)}).\n"
                     f"- **Impacto de la tasa:**\n"
                     f"  - Si la tasa sube apenas 10 puntos básicos, de {porcentaje(tasa_mv, 4)} a {porcentaje(tasa_mv_sens, 4)} mensual, el total de intereses en cuota fija aumenta **{pesos_md(interes_sens)} COP**.\n"
                     f"- *Puedes simular cualquier combinación en tiempo real usando los controles del panel izquierdo.*"
@@ -418,7 +349,7 @@ elif caso_seleccionado_id == "inversion_bancolombia_nu":
 
         st.divider()
         st.markdown("**Alternativa A: CDT Bancolombia**")
-        tasa_cdt_ea = entradas.campo_tasa("Tasa CDT Bancolombia (% EA)", "inv_tasa_cdt", p["tasa_cdt_ea"])
+        tasa_cdt_ea = entradas.campo_tasa("Tasa CDT Bancolombia EA", "inv_tasa_cdt", p["tasa_cdt_ea"])
         modo_cdt = st.radio(
             "Manejo de rendimientos CDT:",
             ["compuesto", "simple"],
@@ -431,7 +362,7 @@ elif caso_seleccionado_id == "inversion_bancolombia_nu":
 
         st.divider()
         st.markdown("**Alternativa B: Cuenta de Rendimientos (Nu)**")
-        tasa_nu_ea = entradas.campo_tasa("Tasa Cuenta de Ahorro (% EA)", "inv_tasa_nu", p["tasa_cuenta_ea"])
+        tasa_nu_ea = entradas.campo_tasa("Tasa cuenta de ahorro EA", "inv_tasa_nu", p["tasa_cuenta_ea"])
         st.caption("Capitalización diaria con disponibilidad de saldo inmediata.")
 
         st.divider()
@@ -496,7 +427,8 @@ elif caso_seleccionado_id == "inversion_bancolombia_nu":
     diff_val = abs(diferencia_neta)
 
     # La alternativa recomendada es la de mayor rendimiento neto
-    if diferencia_neta >= 0:
+    cuenta_gana = decisiones.gana_cuenta(intereses_netos_nu, intereses_netos_cdt)
+    if cuenta_gana:
         ganador, perdedor = "Cuenta Nu", "CDT Bancolombia"
     else:
         ganador, perdedor = "CDT Bancolombia", "Cuenta Nu"
@@ -511,12 +443,12 @@ elif caso_seleccionado_id == "inversion_bancolombia_nu":
         with k2:
             estilos.tarjeta_kpi("savings", pesos(intereses_netos_nu), "Ganancia neta Nu", "amortizacion")
         with k3:
-            if diferencia_neta >= 0:
-                estilos.tarjeta_kpi("trending_up", pesos(diferencia_neta), "Diferencia a favor Nu", "amortizacion")
+            if cuenta_gana:
+                estilos.tarjeta_kpi("trending_up", pesos(diff_val), "Diferencia a favor Nu", "amortizacion")
             else:
-                estilos.tarjeta_kpi("trending_up", pesos(abs(diferencia_neta)), "Diferencia a favor CDT", "principal")
+                estilos.tarjeta_kpi("trending_up", pesos(diff_val), "Diferencia a favor CDT", "principal")
         with k4:
-            rent_real_ganador = rent_real_nu if diferencia_neta >= 0 else rent_real_cdt
+            rent_real_ganador = rent_real_nu if cuenta_gana else rent_real_cdt
             estilos.tarjeta_kpi("percent", porcentaje(rent_real_ganador), f"Rentabilidad real {ganador}", TEMA)
 
         # Gráfico comparativo de resultados al vencimiento
@@ -634,15 +566,15 @@ elif caso_seleccionado_id == "inversion_bancolombia_nu":
                 )
 
             with tab_p4:
-                if diferencia_neta >= 0:
+                if cuenta_gana:
                     decision = "Cuenta de Rendimientos / Cajita de Ahorro (Nu Colombia)"
                     argumento_rentabilidad = (
                         f"Ofrece mayor TEA neta post-impuestos (**{porcentaje(tea_neta_nu, 2)}** vs **{porcentaje(tea_neta_cdt, 2)}**) "
                         f"y mayor rentabilidad real frente a la inflación (**{porcentaje(rent_real_nu, 2)}** vs **{porcentaje(rent_real_cdt, 2)}**)."
                     )
                     argumento_liquidez = (
-                        f"**Liquidez y Disponibilidad 24/7:** El CDT tradicional congela el dinero durante {plazo_dias} días (penalización severa por retiro anticipado). "
-                        f"En Nu el dinero está disponible inmediatamente en cualquier momento sin penalidad."
+                        f"**Liquidez:** El CDT mantiene el dinero invertido durante {plazo_dias} días; este análisis no considera un retiro anticipado. "
+                        f"En Nu el saldo está disponible en cualquier momento."
                     )
                 else:
                     decision = f"CDT Bancolombia, si el dinero no se va a necesitar durante los {plazo_dias} días"
@@ -652,7 +584,7 @@ elif caso_seleccionado_id == "inversion_bancolombia_nu":
                         f"con **+{pesos_md(diff_val)} COP** netos. Además, su tasa queda pactada, mientras la de la cuenta puede cambiar."
                     )
                     argumento_liquidez = (
-                        f"**Costo en Liquidez:** El CDT congela el dinero durante {plazo_dias} días (penalización severa por retiro anticipado). "
+                        f"**Costo en Liquidez:** El CDT mantiene el dinero invertido durante {plazo_dias} días; este análisis no considera un retiro anticipado. "
                         f"Si existe la posibilidad de necesitarlo antes, conviene la cuenta Nu: esos {pesos_md(diff_val)} COP son el precio de tener el dinero disponible en cualquier momento."
                     )
                 st.markdown(
@@ -661,7 +593,9 @@ elif caso_seleccionado_id == "inversion_bancolombia_nu":
                     f"- **Argumentos Financieros y Técnicos:**\n"
                     f"  1. **Superioridad en Rentabilidad:** {argumento_rentabilidad}\n"
                     f"  2. {argumento_liquidez}\n"
-                    f"  3. **Seguridad Institucional Idéntica:** Ambas entidades están vigiladas por la Superintendencia Financiera de Colombia y cuentan con el seguro de depósitos **FOGAFIN** (cobertura hasta \\$50.000.000 COP por titular)."
+                    f"  3. **Seguro de depósitos:** [Fogafín, Resolución JD 001 de 2026 (20 de mayo de 2026), tope de \\$50.000.000 por persona en cada entidad]({URL_FOGAFIN}). "
+                    f"El capital de {pesos_md(capital_inv)} {'queda dentro de ese tope' if capital_inv <= TOPE_FOGAFIN else 'supera ese tope'}. "
+                    f"La resolución ampara CDT y depósitos de ahorro en entidades inscritas; conviene confirmar la inscripción de cada entidad."
                 )
 
         with st.expander("Ver tabla comparativa técnica completa"):
@@ -699,6 +633,7 @@ elif caso_seleccionado_id == "ahorro_cuota_inicial_gradientes":
         )
         tasa_mv = tasas.periodica_desde_ea(tasa_ea_fondo, 12)
         st.caption(f"**Equivalencia:** {porcentaje(tasa_ea_fondo, 2)} EA $\\Longleftrightarrow$ **{porcentaje(tasa_mv, 4)} mensual**.")
+        meta_ahorro = entradas.campo_dinero("Meta de ahorro (supuesto)", "gr_meta", p["meta_ahorro"], minimo=1, paso=1_000_000)
 
         st.divider()
         st.subheader("Modalidad de incremento")
@@ -712,15 +647,19 @@ elif caso_seleccionado_id == "ahorro_cuota_inicial_gradientes":
             key="gr_tipo_grad",
         )
 
+        # Los dos incrementos siempre están disponibles porque la recomendación compara ambos planes
+        incremento_G = entradas.campo_dinero(
+            "Incremento mensual fijo (G)", "gr_G", p["gradiente_aritmetico_G"], minimo=1_000, paso=5_000
+        )
+        incremento_g = entradas.campo_tasa(
+            "Incremento mensual porcentual (g)", "gr_g", p["gradiente_geometrico_g"], minimo=0.001, maximo=0.20
+        )
+        st.caption("El tipo elegido define las gráficas; la recomendación compara los dos planes.")
         if tipo_grad == "aritmetico":
-            g_val = entradas.campo_dinero(
-                "Incremento mensual fijo (G)", "gr_G", p["gradiente_aritmetico_G"], minimo=1_000, paso=5_000
-            )
+            g_val = incremento_G
             desc_incremento = f"+ {pesos(g_val)} cada mes"
         else:
-            g_val = entradas.campo_tasa(
-                "Incremento mensual porcentual (g)", "gr_g", p["gradiente_geometrico_g"], minimo=0.001, maximo=0.20
-            )
+            g_val = incremento_g
             desc_incremento = f"+ {porcentaje(g_val)} cada mes"
 
     # Lógica de cálculo en Python según las fórmulas de clase
@@ -733,6 +672,8 @@ elif caso_seleccionado_id == "ahorro_cuota_inicial_gradientes":
 
     vf_acumulado = gradientes.vf_gradiente(vp, tasa_mv, n_meses)
     cuota_equivalente = gradientes.cuota_equivalente(vp, tasa_mv, n_meses)
+    planes = decisiones.comparar_planes(a1, incremento_G, incremento_g, tasa_mv, n_meses, meta_ahorro)
+    plan_aritmetico, plan_geometrico = planes
 
     # Simulación periodo a periodo de saldo y aportes acumulados
     meses_arr = list(range(1, n_meses + 1))
@@ -874,34 +815,53 @@ elif caso_seleccionado_id == "ahorro_cuota_inicial_gradientes":
                     f"- **Total de aportes propios (de tu bolsillo):** **{pesos_md(total_aportado)}** ({porcentaje(total_aportado / vf_acumulado, 1)} del capital acumulado final).\n"
                     f"- **Rendimientos puros generados por el fondo:** **+{pesos_md(intereses_ganados)}** ({porcentaje(intereses_ganados / vf_acumulado, 1)} del capital acumulado final).\n"
                     f"- **Capital total acumulado al mes {n_meses} (VF):** **{pesos_md(vf_acumulado)}**.\n"
-                    f"- **Efecto de la capitalización:** Prácticamente el **{porcentaje(intereses_ganados / vf_acumulado, 1)} de la cuota inicial de la vivienda** es dinero regalado por el interés compuesto."
+                    f"- **Efecto de la capitalización:** El **{porcentaje(intereses_ganados / vf_acumulado, 1)} del capital acumulado** proviene de los rendimientos proyectados del fondo, no de tus aportes. Esos rendimientos no están garantizados."
                 )
 
             with tab_p3:
-                g_arit_val = p['gradiente_aritmetico_G']
                 tasa_ea_alta = tasa_ea_fondo + 0.01
                 tasa_mv_alta = tasas.periodica_desde_ea(tasa_ea_alta, 12)
                 vf_tasa_alta = sum(c * (1 + tasa_mv_alta) ** (n_meses - m) for m, c in zip(meses_arr, cuotas))
                 st.markdown(
                     f"**¿Cómo cambia el resultado si varían la tasa, el plazo o la modalidad de gradiente?**\n"
-                    f"- **Aritmético (+ {pesos_md(g_arit_val)}/mes) vs. Geométrico (+ {porcentaje(p['gradiente_geometrico_g'])}):**\n"
+                    f"- **Aritmético (+ {pesos_md(incremento_G)}/mes) vs. Geométrico (+ {porcentaje(incremento_g)}/mes):**\n"
                     f"  - El gradiente aritmético sube a ritmo constante lineal, ideal para quien tiene expectativas de incrementos salariales fijos en pesos.\n"
-                    f"  - El gradiente geométrico crece a tasa porcentual compuesta; si se fija en 2% mensual, en los primeros meses exige cuotas más bajas pero al final crece de forma pronunciada.\n"
+                    f"  - El gradiente geométrico crece a tasa porcentual compuesta: cada aumento se calcula sobre la cuota anterior.\n"
+                    f"  - Con estos valores, la última cuota es **{pesos_md(plan_aritmetico['cuotas'][-1])}** en el aritmético y **{pesos_md(plan_geometrico['cuotas'][-1])}** en el geométrico, "
+                    f"y el capital final es **{pesos_md(plan_aritmetico['vf'])}** y **{pesos_md(plan_geometrico['vf'])}**.\n"
                     f"- **Impacto de la tasa de interés:**\n"
                     f"  - Si la rentabilidad del fondo sube de {porcentaje(tasa_ea_fondo, 2)} a {porcentaje(tasa_ea_alta, 2)} E.A., el capital final VF se incrementa en **{pesos_md(vf_tasa_alta - vf_acumulado)} COP** sin tener que aportar un solo peso adicional de bolsillo. Como la rentabilidad no está garantizada, también puede bajar y reducir el capital final.\n"
                     f"- *Prueba a cambiar a la izquierda el tipo de gradiente o el plazo para recalcular toda la trayectoria.*"
                 )
 
             with tab_p4:
+                recomendado, motivo = decisiones.plan_recomendado(planes)
+                incrementos = {"aritmetico": f"+ {pesos_md(incremento_G)}/mes", "geometrico": f"+ {porcentaje(incremento_g)}/mes"}
+                lineas_meta = "".join(
+                    f"- **{plan['nombre']}** ({incrementos[plan['clave']]}): acumula **{pesos_md(plan['vf'])}** con **{pesos_md(plan['aportes'])}** de aportes y "
+                    + (
+                        f"supera la meta por **{pesos_md(plan['diferencia_meta'])}**.\n"
+                        if plan["alcanza"]
+                        else f"queda **{pesos_md(-plan['diferencia_meta'])}** por debajo de la meta.\n"
+                    )
+                    for plan in planes
+                )
+                otro = plan_geometrico if recomendado is plan_aritmetico else plan_aritmetico
+                razon = {
+                    "unico": "es el único plan que alcanza la meta.",
+                    "menos_aportes": f"los dos alcanzan la meta y este exige menos aportes ({pesos_md(recomendado['aportes'])} frente a {pesos_md(otro['aportes'])}).",
+                    "mas_cercano": "ningún plan alcanza la meta y este es el que más se acerca. Para alcanzarla, aumenta la primera cuota, el incremento o el plazo.",
+                }[motivo]
                 st.markdown(
-                    f"**¿Qué alternativa o decisión recomiendan y con qué argumentos?**\n"
-                    f"**Comparación con Cuota Fija Equivalente ($A_{{eq}}$):**\n"
-                    f"- Para acumular exactamente los mismos **{pesos_md(vf_acumulado)}** al mes {n_meses}, el ahorrador habría tenido que pagar una cuota fija mensual de **{pesos_md(cuota_equivalente)}** todos los meses desde el mes 1.\n\n"
-                    f"**Veredicto y Recomendación:**\n"
-                    f"1. **Recomendación: Ahorro con Gradiente Aritmético.**\n"
-                    f"2. **Argumentos Financieros:**\n"
-                    f"   - **Accesibilidad y Viabilidad Inicial:** Exige solo **{pesos_md(a1)}** el mes 1, facilitando la creación del hábito de ahorro sin asfixiar el presupuesto familiar, en contraste con comprometerse con **{pesos_md(cuota_equivalente)}** desde el día uno.\n"
-                    f"   - **Cruce en el mes {cruce_mes}:** El esfuerzo mensual del gradiente se mantiene por debajo de la cuota fija durante los primeros {cruce_mes - 1} meses del plan, adaptándose a la curva natural de crecimiento de ingresos del profesional o familia."
+                    f"**¿Qué alternativa o decisión recomiendan y con qué argumentos?**\n\n"
+                    f"**Comparación con la meta de ahorro (supuesto: {pesos_md(meta_ahorro)}):**\n"
+                    f"{lineas_meta}\n"
+                    f"**Recomendación: {recomendado['nombre']}**, porque {razon}\n\n"
+                    f"**Argumentos Financieros:**\n"
+                    f"- **Comparación con cuota fija equivalente:** Para acumular los mismos **{pesos_md(recomendado['vf'])}** al mes {n_meses} habría que pagar **{pesos_md(recomendado['cuota_equivalente'])}** todos los meses desde el mes 1.\n"
+                    f"- **Accesibilidad inicial:** El plan empieza con **{pesos_md(a1)}** el mes 1, en contraste con comprometerse con **{pesos_md(recomendado['cuota_equivalente'])}** desde el inicio.\n"
+                    f"- **Cruce en el mes {recomendado['cruce']}:** El aporte se mantiene por debajo de la cuota fija durante los primeros {recomendado['cruce'] - 1} meses del plan.\n"
+                    f"- **Precaución:** Estos valores suponen que el fondo mantiene su rentabilidad, que no está garantizada."
                 )
 
         with st.expander("Ver tabla completa de aportes y saldos mes a mes"):

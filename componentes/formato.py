@@ -33,9 +33,8 @@ def escapar_md(texto):
 def supuesto_retencion_cuenta(interes_diario, retencion):
     """Supuesto de retención de la cuenta de ahorros en markdown, con el interés diario redondeado a dos cifras."""
     unos = float(f"{interes_diario:.2g}")
-    texto_retencion = porcentaje(retencion, 0 if round(retencion * 100, 6).is_integer() else 2)
     return (
-        f"**Supuesto:** la retención del {texto_retencion} se aplica sobre la totalidad de los intereses de la cuenta de ahorros. "
+        f"**Supuesto:** la retención del {porcentaje_compacto(retencion)} se aplica sobre la totalidad de los intereses de la cuenta de ahorros. "
         f"Con el capital del caso, el interés diario (unos \\${numero(unos)} con año de 360 días) supera ampliamente "
         "cualquier base mínima diaria."
     )
@@ -49,6 +48,11 @@ def pesos_md(valor, decimales=0):
 def porcentaje(tasa, decimales=2):
     """Tasa decimal como porcentaje: 0.195618 -> "19,56%"."""
     return numero(tasa * 100, decimales) + "%"
+
+
+def porcentaje_compacto(tasa):
+    """Porcentaje sin decimales si es entero: 0.07 -> "7%"; 0.075 -> "7,50%"."""
+    return porcentaje(tasa, 0 if round(tasa * 100, 6).is_integer() else 2)
 
 
 def tasa_con_codigo(tasa, codigo, decimales=2):
