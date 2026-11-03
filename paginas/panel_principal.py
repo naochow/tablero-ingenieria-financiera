@@ -30,21 +30,21 @@ casos = _cargar_datos_casos()
 
 # Cálculos dinámicos con motor financiero UPB
 if len(casos) >= 3:
-    # Caso 1: Crédito de Vehículo (Sufi)
+    # Caso 1: Crédito de Vehículo (oferta de menor costo efectivo)
     c1 = casos[0]["parametros"]
     c1_monto = c1["monto"]
     c1_plazo = c1["plazo_meses"]
-    c1_sufi_mv = c1["ofertas"][0]["tasa_valor"]
-    c1_sufi_ea = tasas.ea_desde_periodica(c1_sufi_mv, 12)
-    c1_davi_namv = c1["ofertas"][1]["tasa_valor"]
-    c1_davi_ea = tasas.ea_desde_codigo(c1_davi_namv, "NAMV")
+    c1_barata, c1_cara = sorted(
+        ({"entidad": o["entidad"], "ea": tasas.ea_desde_codigo(o["tasa_valor"], o["codigo_tasa"])} for o in c1["ofertas"]),
+        key=lambda o: o["ea"],
+    )
+    c1_mv = tasas.periodica_desde_ea(c1_barata["ea"], 12)
 
-    tabla_c1_frances = amortizacion.tabla_amortizacion(c1_monto, c1_sufi_mv, c1_plazo, sistema="frances")
-    c1_cuota_sufi = tabla_c1_frances[1]["cuota"]
+    tabla_c1_frances = amortizacion.tabla_amortizacion(c1_monto, c1_mv, c1_plazo, sistema="frances")
     c1_int_frances = sum(r["intereses"] for r in tabla_c1_frances)
     c1_total_frances = sum(r["pago_total"] for r in tabla_c1_frances)
 
-    tabla_c1_aleman = amortizacion.tabla_amortizacion(c1_monto, c1_sufi_mv, c1_plazo, sistema="aleman")
+    tabla_c1_aleman = amortizacion.tabla_amortizacion(c1_monto, c1_mv, c1_plazo, sistema="aleman")
     c1_int_aleman = sum(r["intereses"] for r in tabla_c1_aleman)
     c1_total_aleman = sum(r["pago_total"] for r in tabla_c1_aleman)
     c1_ahorro_aleman = c1_int_frances - c1_int_aleman
@@ -61,22 +61,30 @@ if len(casos) >= 3:
 
     rend_cdt_bruto = c2_capital * ((1 + c2_tasa_cdt_ea) ** t2_base - 1)
     rend_cdt_neto = rend_cdt_bruto * (1 - c2_ret_cdt)
-    total_cdt_neto = c2_capital + rend_cdt_neto
     tea_neta_cdt = (1 + rend_cdt_neto / c2_capital) ** (1 / t2_base) - 1
 
     rend_nu_bruto = c2_capital * ((1 + c2_tasa_nu_ea) ** t2_base - 1)
     rend_nu_neto = rend_nu_bruto * (1 - c2_ret_nu)
-    total_nu_neto = c2_capital + rend_nu_neto
-    tea_neta_nu = (1 + rend_nu_neto / c2_capital) ** (1 / t2_base) - 1
-    dif_nu_favor = rend_nu_neto - rend_cdt_neto
 
-    # Caso 3: Plan Semilla Cuota Inicial (Gradientes)
+    # La alternativa recomendada es la de mayor rendimiento neto
+    c2_gana, c2_pierde = sorted(
+        [
+            {"nombre": "CDT Bancolombia", "corto": "Bancolombia", "ea": c2_tasa_cdt_ea, "rend": rend_cdt_neto, "liquidez": "sin liquidez hasta el vencimiento"},
+            {"nombre": "Nu Colombia", "corto": "Nu", "ea": c2_tasa_nu_ea, "rend": rend_nu_neto, "liquidez": "liquidez 24/7"},
+        ],
+        key=lambda a: a["rend"],
+        reverse=True,
+    )
+    c2_total_gana = c2_capital + c2_gana["rend"]
+    c2_dif = c2_gana["rend"] - c2_pierde["rend"]
+
+    # Caso 3: Fiducuenta Cuota Inicial (Gradientes)
     c3 = casos[2]["parametros"]
     c3_a1 = c3["a1"]
     c3_G = c3["gradiente_aritmetico_G"]
     c3_plazo = c3["plazo_meses"]
-    c3_tasa_mv = c3["tasa_mv"]
-    c3_tasa_ea = tasas.ea_desde_periodica(c3_tasa_mv, 12)
+    c3_tasa_ea = c3["tasa_ea"]
+    c3_tasa_mv = tasas.periodica_desde_ea(c3_tasa_ea, 12)
 
     vp_c3 = gradientes.vp_aritmetico(c3_a1, c3_G, c3_tasa_mv, c3_plazo)
     vf_c3 = gradientes.vf_gradiente(vp_c3, c3_tasa_mv, c3_plazo)
@@ -86,17 +94,19 @@ if len(casos) >= 3:
 else:
     c1_monto = 35000000
     c1_plazo = 48
-    c1_sufi_mv, c1_sufi_ea, c1_davi_ea = 0.0165, 0.2170, 0.2254
-    c1_cuota_sufi, c1_total_frances, c1_int_frances = 1061337, 50944179, 15944179
-    c1_total_aleman, c1_ahorro_aleman = 49148750, 1795429
-    c2_capital = 20000000
-    c2_tasa_cdt_ea, c2_tasa_nu_ea = 0.1080, 0.1200
-    tea_neta_cdt, tea_neta_nu = 0.1037, 0.1116
-    total_cdt_neto, rend_cdt_neto = 22073600, 2073600
-    total_nu_neto, rend_nu_neto, dif_nu_favor = 22232000, 2232000, 158400
+    c1_barata = {"entidad": "Davivienda", "ea": 0.1718}
+    c1_cara = {"entidad": "Sufi (Bancolombia)", "ea": 0.2460}
+    c1_mv = 0.0133
+    c1_total_frances, c1_int_frances = 47577262, 12577262
+    c1_total_aleman, c1_ahorro_aleman = 46404750, 1172512
+    c2_tasa_cdt_ea = 0.0935
+    tea_neta_cdt = 0.0898
+    c2_gana = {"nombre": "CDT Bancolombia", "corto": "Bancolombia", "ea": 0.0935, "rend": 1795200, "liquidez": "sin liquidez hasta el vencimiento"}
+    c2_pierde = {"nombre": "Nu Colombia", "corto": "Nu", "ea": 0.0935, "rend": 1739100, "liquidez": "liquidez 24/7"}
+    c2_total_gana, c2_dif = 21795200, 56100
     c3_a1, c3_G, c3_plazo = 500000, 25000, 36
-    c3_tasa_mv, c3_tasa_ea = 0.0060, 0.0744
-    vf_c3, total_aportes_c3, rend_c3 = 36901249, 33750000, 3151249
+    c3_tasa_mv, c3_tasa_ea = 0.00726, 0.0907
+    vf_c3, total_aportes_c3, rend_c3 = 37614849, 33750000, 3864849
 
 # Verificaciones dinámicas del sistema
 verificaciones = [
@@ -164,12 +174,12 @@ with k1:
         f"""
         <div class="kpi" style="--color: #6366F1; --suave: rgba(99, 102, 241, 0.15);">
           <div style="display: flex; justify-content: space-between; align-items: center; color: #94A3B8; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">
-            <span>CASO 1: CRÉDITO SUFI</span>
+            <span>CASO 1: CRÉDITO {c1_barata['entidad'].upper()}</span>
             <span class="kpi-icono" style="width: 1.8rem; height: 1.8rem; font-size: 1rem;"><i class="fa-solid fa-car"></i></span>
           </div>
           <div class="kpi-valor" style="color: #FFFFFF; font-size: 1.45rem; margin-top: 0.3rem;">{_p_html(c1_monto)} <span style="font-size: 0.75rem; color: #94A3B8; font-weight: normal;">COP</span></div>
           <div style="font-size: 0.75rem; color: #818CF8; margin-top: 0.25rem; display: flex; align-items: center; gap: 0.3rem;">
-            <i class="fa-solid fa-tag"></i> {porcentaje(c1_sufi_mv, 2)} M.V. ({porcentaje(c1_sufi_ea, 2)} E.A.)
+            <i class="fa-solid fa-tag"></i> {porcentaje(c1_mv, 2)} M.V. ({porcentaje(c1_barata['ea'], 2)} E.A.)
           </div>
         </div>
         """,
@@ -239,7 +249,7 @@ with estilos.tarjeta("tabla_ejecutiva"):
               <i class="fa-solid fa-briefcase" style="color: #10B981;"></i>
               Resumen Ejecutivo de Casos Financieros Aplicados
             </h3>
-            <p style="font-size: 0.8rem; color: #94A3B8; margin: 0;">Síntesis comparativa calculada dinámicamente según cotizaciones oficiales del mercado bancario colombiano.</p>
+            <p style="font-size: 0.8rem; color: #94A3B8; margin: 0;">Síntesis comparativa calculada dinámicamente según las tasas y fuentes consultadas del mercado colombiano.</p>
             """,
             unsafe_allow_html=True,
         )
@@ -268,13 +278,13 @@ with estilos.tarjeta("tabla_ejecutiva"):
                 </td>
                 <td style="font-family: 'Inter', sans-serif;">Sufi (Bancolombia) vs. Davivienda</td>
                 <td>
-                  <span style="color: #818CF8; font-weight: 600;">{porcentaje(c1_sufi_ea, 2)} E.A. (Sufi)</span> vs <span style="color: #94A3B8;">{porcentaje(c1_davi_ea, 2)} (Davivienda)</span>
+                  <span style="color: #818CF8; font-weight: 600;">{porcentaje(c1_barata['ea'], 2)} E.A. {c1_barata['entidad']}</span> vs <span style="color: #94A3B8;">{porcentaje(c1_cara['ea'], 2)} {c1_cara['entidad']}</span>
                 </td>
                 <td>{_p_html(c1_total_frances)} (Francés) vs {_p_html(c1_total_aleman)} (Alemán)</td>
                 <td style="color: #FB7185; font-weight: 600;">-{_p_html(c1_int_frances)} COP (Francés)</td>
                 <td style="font-family: 'Inter', sans-serif;">
                   <span class="etiqueta" style="--oscuro: #6366F1; --suave: rgba(99, 102, 241, 0.15); border-color: rgba(99, 102, 241, 0.4); color: #A5B4FC; display: inline-block; white-space: normal; line-height: 1.35; max-width: 250px;">
-                    Abono Constante (Ahorro {_p_html(c1_ahorro_aleman)} en intereses)
+                    {c1_barata['entidad']} con Abono Constante (Ahorro {_p_html(c1_ahorro_aleman)} en intereses)
                   </span>
                 </td>
               </tr>
@@ -284,23 +294,23 @@ with estilos.tarjeta("tabla_ejecutiva"):
                 </td>
                 <td style="font-family: 'Inter', sans-serif;">Bancolombia vs Nu Colombia</td>
                 <td>
-                  <span style="color: #34D399; font-weight: 600;">{porcentaje(c2_tasa_nu_ea, 2)} E.A. (Nu)</span> vs <span style="color: #94A3B8;">{porcentaje(c2_tasa_cdt_ea, 2)} (Bancolombia)</span>
+                  <span style="color: #34D399; font-weight: 600;">{porcentaje(c2_gana['ea'], 2)} E.A. ({c2_gana['corto']})</span> vs <span style="color: #94A3B8;">{porcentaje(c2_pierde['ea'], 2)} ({c2_pierde['corto']})</span>
                 </td>
-                <td>{_p_html(total_nu_neto)} COP neto (Nu)</td>
-                <td style="color: #34D399; font-weight: 600;">+{_p_html(rend_nu_neto)} COP netos</td>
+                <td>{_p_html(c2_total_gana)} COP neto ({c2_gana['corto']})</td>
+                <td style="color: #34D399; font-weight: 600;">+{_p_html(c2_gana['rend'])} COP netos</td>
                 <td style="font-family: 'Inter', sans-serif;">
                   <span class="etiqueta" style="--oscuro: #10B981; --suave: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.4); color: #34D399; display: inline-block; white-space: normal; line-height: 1.35; max-width: 250px;">
-                    Nu Colombia (+{_p_html(dif_nu_favor)} netos y liquidez 24/7)
+                    {c2_gana['nombre']} (+{_p_html(c2_dif)} netos; {c2_gana['liquidez']})
                   </span>
                 </td>
               </tr>
               <tr>
                 <td style="font-family: 'Inter', sans-serif; font-weight: 600; color: #FFFFFF;">
-                  Caso 3: Plan Semilla Cuota Inicial Vivienda
+                  Caso 3: Fiducuenta para Cuota Inicial de Vivienda
                 </td>
                 <td style="font-family: 'Inter', sans-serif;">Fiduciaria Bancolombia (Fiducuenta)</td>
                 <td style="color: #FBBF24; font-weight: 600;">{porcentaje(c3_tasa_ea, 2)} E.A. ({porcentaje(c3_tasa_mv, 2)} M.V.)</td>
-                <td>{_p_html(vf_c3)} COP (Meta acumulada)</td>
+                <td>{_p_html(vf_c3)} COP (Capital acumulado)</td>
                 <td style="color: #34D399; font-weight: 600;">+{_p_html(rend_c3)} COP rendimientos</td>
                 <td style="font-family: 'Inter', sans-serif;">
                   <span class="etiqueta" style="--oscuro: #F59E0B; --suave: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.4); color: #FBBF24; display: inline-block; white-space: normal; line-height: 1.35; max-width: 250px;">

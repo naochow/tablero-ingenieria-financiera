@@ -7,97 +7,95 @@
       "categoria": "Vehículo y Consumo",
       "temas": ["Equivalencia de Tasas", "Series Uniformes", "Sistemas de Amortización"],
       "entidades": "Sufi (Grupo Bancolombia) vs. Banco Davivienda",
-      "fuente": "Simulador Oficial de Crédito de Vehículo Sufi y Tarifario Davivienda",
-      "fuente_url": "https://simulador.sufi.apps.bancolombia.com/",
       "fuentes": [
         {
-          "nombre": "Simulador Oficial Sufi (Bancolombia)",
-          "url": "https://simulador.sufi.apps.bancolombia.com/"
+          "nombre": "Simulador Sufi",
+          "url": "https://simulador.sufi.apps.bancolombia.com/",
+          "fecha": "2 de noviembre de 2026",
+          "nota": "Sufi: tasa de política con corte a octubre de 2025, según aclara el simulador."
         },
         {
-          "nombre": "Simulador Vehículo Davivienda",
-          "url": "https://misfinanzasencasa.davivienda.com/finanzas-personales/simuladores/simulador-de-credito-de-vehiculo/"
-        },
-        {
-          "nombre": "Tasas Oficiales Davivienda",
-          "url": "https://www.davivienda.com/tasas-y-tarifas"
+          "nombre": "Simulador de vehículo Davivienda",
+          "url": "https://misfinanzasencasa.davivienda.com/finanzas-personales/simuladores/simulador-de-credito-de-vehiculo/",
+          "fecha": "2 de noviembre de 2026"
         }
       ],
-      "fecha_consulta": "24 de octubre de 2026",
+      "fecha_consulta": "2 de noviembre de 2026",
       "parametros": {
         "monto": 35000000,
         "plazo_meses": 48,
         "ofertas": [
           {
             "entidad": "Sufi (Bancolombia)",
-            "tasa_valor": 0.0165,
+            "tasa_valor": 0.0185,
             "codigo_tasa": "MV",
-            "descripcion": "1,65% Mes Vencido (MV) = 21,70% E.A."
+            "descripcion": "1,85% Mes Vencido (MV)"
           },
           {
             "entidad": "Davivienda",
-            "tasa_valor": 0.2050,
+            "tasa_valor": 0.1596,
             "codigo_tasa": "NAMV",
-            "descripcion": "20,50% Nominal Anual Mes Vencido (NAMV) = 22,54% E.A."
+            "descripcion": "15,96% Nominal Anual Mes Vencido (NAMV)"
           }
         ]
       }
     },
     {
       "id": "inversion_bancolombia_nu",
-      "titulo": "Caso 2: Rentabilidad Real e Inversión (Bancolombia vs. Nu / Lulo)",
-      "descripcion": "Comparación de alternativas de inversión de capital: CDT tradicional a tasa fija vs. Cuenta de alto rendimiento (Nu/Lulo). Evaluación de interés simple vs. compuesto, retención en la fuente diferenciada (4% CDT vs. 7% cuenta) y rentabilidad real neta de inflación.",
+      "titulo": "Caso 2: Rentabilidad Real e Inversión (Bancolombia vs. Nu)",
+      "descripcion": "Comparación de alternativas de inversión de capital: CDT tradicional a tasa fija vs. Cuenta de alto rendimiento (Nu). Evaluación de interés simple vs. compuesto, retención en la fuente diferenciada (4% CDT vs. 7% cuenta) y rentabilidad real neta de inflación.",
       "categoria": "Inversión y Rentabilidad",
       "temas": ["Interés Simple vs. Compuesto", "Equivalencia de Tasas", "Retención en la Fuente", "Rentabilidad Real"],
-      "entidades": "Bancolombia (CDT Físico) vs. Nu Colombia / Lulo Bank (Cajitas de Ahorro)",
-      "fuente": "Simulador CDT Físico Bancolombia y Tarifario Oficial de Tasas Nu Colombia",
-      "fuente_url": "https://www.bancolombia.com/personas/productos/inversiones/simulador-cdt",
+      "entidades": "Bancolombia (CDT Físico) vs. Nu Colombia (Cajitas de Ahorro)",
       "fuentes": [
         {
-          "nombre": "Simulador CDT Físico Bancolombia",
-          "url": "https://www.bancolombia.com/personas/productos/inversiones/simulador-cdt"
+          "nombre": "Simulador CDT Bancolombia",
+          "url": "https://www.bancolombia.com/personas/productos/inversiones/simulador-cdt",
+          "fecha": "2 de noviembre de 2026"
         },
         {
-          "nombre": "Tarifario Cuenta Nu Colombia (12% E.A.)",
-          "url": "https://nu.com.co/cuenta/"
+          "nombre": "Forbes Colombia",
+          "url": "https://forbes.co/economia-y-finanzas/donde-poner-sus-ahorros-para-ganar-mas-intereses-estas-son-las-tasas-que-ofrecen-los-bancos-en-colombia",
+          "fecha": "20 de octubre de 2026",
+          "nota": "Tasa de las Cajitas de Nu para clientes regulares, informada para octubre de 2026."
+        },
+        {
+          "nombre": "DANE: boletín IPC septiembre 2026",
+          "url": "https://www.dane.gov.co/files/operaciones/IPC/sep2026/bol-IPC-sep2026.pdf",
+          "fecha": "7 de octubre de 2026"
         }
       ],
-      "fecha_consulta": "24 de octubre de 2026",
+      "fecha_consulta": "2 de noviembre de 2026",
       "parametros": {
         "capital": 20000000,
         "plazo_dias": 360,
-        "tasa_cdt_ea": 0.1080,
-        "tasa_cuenta_ea": 0.1200,
+        "tasa_cdt_ea": 0.0935,
+        "tasa_cuenta_ea": 0.0935,
         "retencion_cdt": 0.04,
         "retencion_cuenta": 0.07,
-        "retencion_fuente": 0.04,
-        "inflacion_ipc": 0.0550
+        "inflacion_ipc": 0.0629
       }
     },
     {
       "id": "ahorro_cuota_inicial_gradientes",
-      "titulo": "Caso 3: Ahorro Programado para Cuota Inicial de Vivienda (Plan Semilla Bancolombia)",
-      "descripcion": "Plan de ahorro programado a 36 meses en el Fondo de Inversión Colectiva Plan Semilla / Fiducuenta de Fiduciaria Bancolombia para alcanzar la cuota inicial del 30% de una vivienda (meta \\$36.900.000 COP). Tasa real de mercado del 0,60% mensual vencido (7,44% E.A. según Ficha Técnica oficial ante la SFC). Se evalúa aporte inicial de \\$500.000 COP con gradiente aritmético (+ \\$25.000/mes) o geométrico (+ 2%/mes) vs. cuota fija equivalente.",
+      "titulo": "Caso 3: Ahorro Programado para Cuota Inicial de Vivienda (Fiducuenta Bancolombia)",
+      "descripcion": "Plan de ahorro programado a 36 meses en el Fondo de Inversión Colectiva Fiducuenta de Fiduciaria Bancolombia para alcanzar la cuota inicial del 30% de una vivienda (meta \\$36.900.000 COP). Se usa la rentabilidad del último año de 9,07% E.A., rentabilidad reportada por el fondo, que ya refleja la comisión de administración. No está garantizada. Se evalúa aporte inicial de \\$500.000 COP con gradiente aritmético (+ \\$25.000/mes) o geométrico (+ 2%/mes) vs. cuota fija equivalente.",
       "categoria": "Ahorro e Inversión",
       "temas": ["Gradiente Aritmético", "Gradiente Geométrico", "Cuota Uniforme Equivalente"],
-      "entidades": "Fiduciaria Bancolombia (Plan Semilla / Fiducuenta)",
-      "fuente": "Ficha Técnica y Simulador Oficial Plan Semilla - Fiduciaria Bancolombia (Vigilado SFC)",
-      "fuente_url": "https://www.bancolombia.com/personas/productos-servicios/inversiones/fondos-inversion-colectiva/plan-semilla",
+      "entidades": "Fiduciaria Bancolombia (Fiducuenta)",
       "fuentes": [
         {
-          "nombre": "Simulador y Ficha Plan Semilla Bancolombia",
-          "url": "https://www.bancolombia.com/personas/productos-servicios/inversiones/fondos-inversion-colectiva/plan-semilla"
-        },
-        {
-          "nombre": "Ficha Técnica FIC Fiducuenta Bancolombia",
-          "url": "https://www.bancolombia.com/personas/productos-servicios/inversiones/fondos-inversion-colectiva/fiducuenta"
+          "nombre": "Rankia Colombia",
+          "url": "https://www.rankia.co/blog/fondos-inversion-colectiva-colombia/4682852-fiducuenta-bancolombia-beneficios-comisiones",
+          "fecha": "22 de octubre de 2026",
+          "nota": "Datos del informe diario de rentabilidades de Fiduciaria Bancolombia."
         }
       ],
-      "fecha_consulta": "24 de octubre de 2026",
+      "fecha_consulta": "2 de noviembre de 2026",
       "parametros": {
         "a1": 500000,
         "plazo_meses": 36,
-        "tasa_mv": 0.0060,
+        "tasa_ea": 0.0907,
         "gradiente_aritmetico_G": 25000,
         "gradiente_geometrico_g": 0.02
       }

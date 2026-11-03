@@ -18,6 +18,11 @@ def p_md(valor, decimales=0):
     return pesos(valor, decimales).replace("$", r"\$")
 
 
+def p_tex(valor, decimales=2):
+    """Devuelve el porcentaje con % escapado para usarlo dentro de una fórmula KaTeX."""
+    return porcentaje(valor, decimales).replace("%", r"\%")
+
+
 TEMA = "principal"
 COLOR_BASE = estilos.TEMAS[TEMA]["color"]
 COLOR_FRANCES = estilos.TEMAS["amortizacion"]["color"]
@@ -31,52 +36,57 @@ RUTA_CASOS = Path("datos/casos.json")
 FALLBACK_INFO = {
     "vehiculo_sufi_davivienda": {
         "entidades": "Sufi (Grupo Bancolombia) vs. Banco Davivienda",
-        "fecha_consulta": "24 de octubre de 2026",
+        "fecha_consulta": "2 de noviembre de 2026",
         "fuentes": [
             {
-                "nombre": "Simulador Oficial Sufi (Bancolombia)",
+                "nombre": "Simulador Sufi",
                 "url": "https://simulador.sufi.apps.bancolombia.com/",
+                "fecha": "2 de noviembre de 2026",
+                "nota": "Sufi: tasa de política con corte a octubre de 2025, según aclara el simulador.",
             },
             {
-                "nombre": "Simulador Vehículo Davivienda",
+                "nombre": "Simulador de vehículo Davivienda",
                 "url": "https://misfinanzasencasa.davivienda.com/finanzas-personales/simuladores/simulador-de-credito-de-vehiculo/",
-            },
-            {
-                "nombre": "Tasas Oficiales Davivienda",
-                "url": "https://www.davivienda.com/tasas-y-tarifas",
+                "fecha": "2 de noviembre de 2026",
             },
         ],
     },
     "inversion_bancolombia_nu": {
-        "entidades": "Bancolombia (CDT Físico) vs. Nu Colombia / Lulo Bank (Cajitas de Ahorro)",
-        "fecha_consulta": "24 de octubre de 2026",
+        "entidades": "Bancolombia (CDT Físico) vs. Nu Colombia (Cajitas de Ahorro)",
+        "fecha_consulta": "2 de noviembre de 2026",
         "fuentes": [
             {
-                "nombre": "Simulador CDT Físico Bancolombia",
+                "nombre": "Simulador CDT Bancolombia",
                 "url": "https://www.bancolombia.com/personas/productos/inversiones/simulador-cdt",
+                "fecha": "2 de noviembre de 2026",
             },
             {
-                "nombre": "Tarifario Cuenta Nu Colombia (12% E.A.)",
-                "url": "https://nu.com.co/cuenta/",
+                "nombre": "Forbes Colombia",
+                "url": "https://forbes.co/economia-y-finanzas/donde-poner-sus-ahorros-para-ganar-mas-intereses-estas-son-las-tasas-que-ofrecen-los-bancos-en-colombia",
+                "fecha": "20 de octubre de 2026",
+                "nota": "Tasa de las Cajitas de Nu para clientes regulares, informada para octubre de 2026.",
+            },
+            {
+                "nombre": "DANE: boletín IPC septiembre 2026",
+                "url": "https://www.dane.gov.co/files/operaciones/IPC/sep2026/bol-IPC-sep2026.pdf",
+                "fecha": "7 de octubre de 2026",
             },
         ],
         "parametros": {
             "retencion_cdt": 0.04,
             "retencion_cuenta": 0.07,
-            "tasa_cuenta_ea": 0.12,
+            "tasa_cuenta_ea": 0.0935,
         },
     },
     "ahorro_cuota_inicial_gradientes": {
-        "entidades": "Fiduciaria Bancolombia (Plan Semilla / Fiducuenta)",
-        "fecha_consulta": "24 de octubre de 2026",
+        "entidades": "Fiduciaria Bancolombia (Fiducuenta)",
+        "fecha_consulta": "2 de noviembre de 2026",
         "fuentes": [
             {
-                "nombre": "Simulador y Ficha Plan Semilla Bancolombia",
-                "url": "https://www.bancolombia.com/personas/productos-servicios/inversiones/fondos-inversion-colectiva/plan-semilla",
-            },
-            {
-                "nombre": "Ficha Técnica FIC Fiducuenta Bancolombia",
-                "url": "https://www.bancolombia.com/personas/productos-servicios/inversiones/fondos-inversion-colectiva/fiducuenta",
+                "nombre": "Rankia Colombia",
+                "url": "https://www.rankia.co/blog/fondos-inversion-colectiva-colombia/4682852-fiducuenta-bancolombia-beneficios-comisiones",
+                "fecha": "22 de octubre de 2026",
+                "nota": "Datos del informe diario de rentabilidades de Fiduciaria Bancolombia.",
             },
         ],
     },
@@ -110,12 +120,25 @@ explicar = estilos.encabezado(
     "Modelación y análisis de decisiones financieras reales: crédito de vehículo, inversión/rentabilidad real y ahorro con gradientes.",
 )
 
+
+
+def _conservar_caso():
+    """Un clic en el caso ya seleccionado deja el control vacío: se restaura el caso anterior."""
+    if st.session_state["caso_sel"] is None:
+        st.session_state["caso_sel"] = st.session_state["caso_activo"]
+    st.session_state["caso_activo"] = st.session_state["caso_sel"]
+
+
+st.session_state.setdefault("caso_activo", list(titulos_casos.keys())[0])
+st.session_state.setdefault("caso_sel", st.session_state["caso_activo"])
+
 caso_seleccionado_id = st.segmented_control(
     "Selecciona un caso de estudio:",
     list(titulos_casos.keys()),
-    default=list(titulos_casos.keys())[0],
     format_func=lambda cid: titulos_casos[cid],
     label_visibility="collapsed",
+    key="caso_sel",
+    on_change=_conservar_caso,
 )
 
 caso_actual = next(c for c in casos if c["id"] == caso_seleccionado_id)
@@ -139,9 +162,9 @@ with estilos.tarjeta("caso_header"):
             unsafe_allow_html=True,
         )
 
-        # Botones interactivos con enlaces directos a las fuentes oficiales
+        # Botones interactivos con enlaces directos a cada fuente, con su nombre y fecha
         if fuentes:
-            st.caption("Fuentes oficiales consultadas (haz clic para abrir en pestaña nueva):")
+            st.caption("Fuentes consultadas (haz clic para abrir en pestaña nueva):")
             cols_btn = st.columns(len(fuentes))
             for i, f in enumerate(fuentes):
                 with cols_btn[i]:
@@ -150,6 +173,7 @@ with estilos.tarjeta("caso_header"):
                         url=f["url"],
                         use_container_width=True,
                     )
+                    st.caption(f"Fecha: {f['fecha']}. {f.get('nota', '')}")
     with c2:
         st.caption("Temas integrados (Rúbrica):")
         for t in caso_actual["temas"]:
@@ -164,6 +188,16 @@ if caso_seleccionado_id == "vehiculo_sufi_davivienda":
     p = caso_actual["parametros"]
     col_izq, col_der = st.columns([1, 2], gap="large")
 
+    # Tasas cotizadas llevadas a EA y a mensual para compararlas en la misma base
+    ofertas = {}
+    for clave, oferta in zip(("sufi", "davivienda"), p["ofertas"]):
+        ea_oferta = tasas.ea_desde_codigo(oferta["tasa_valor"], oferta["codigo_tasa"])
+        ofertas[clave] = {**oferta, "ea": ea_oferta, "mv": tasas.periodica_desde_ea(ea_oferta, 12)}
+    clave_barata = min(ofertas, key=lambda k: ofertas[k]["ea"])
+    oferta_barata = ofertas[clave_barata]
+    oferta_cara = max(ofertas.values(), key=lambda o: o["ea"])
+    notas_tasas = " ".join(f["nota"] for f in fuentes if f.get("nota"))
+
     with col_izq, estilos.tarjeta("vehiculo_inputs"):
         st.subheader("Datos de la compra")
         monto_vehiculo = entradas.campo_dinero("Valor a financiar", "veh_monto", p["monto"], minimo=1_000_000)
@@ -171,26 +205,23 @@ if caso_seleccionado_id == "vehiculo_sufi_davivienda":
 
         st.divider()
         st.subheader("Entidades y tasas cotizadas")
+        opciones_banco = [*ofertas, "personalizado"]
         banco_sel = st.radio(
             "Seleccionar entidad:",
-            ["sufi", "davivienda", "personalizado"],
-            format_func=lambda b: {
-                "sufi": "Sufi (1,65% Mes Vencido)",
-                "davivienda": "Davivienda (20,50% NAMV)",
-                "personalizado": "Ingresar tasa personalizada",
-            }[b],
+            opciones_banco,
+            index=opciones_banco.index(clave_barata),
+            format_func=lambda b: (
+                "Ingresar tasa personalizada"
+                if b == "personalizado"
+                else f"{ofertas[b]['entidad']}: {ofertas[b]['descripcion']}"
+            ),
             key="veh_banco_sel",
         )
 
-        if banco_sel == "sufi":
-            tasa_mv = 0.0165
-            tasa_ea = tasas.ea_desde_periodica(tasa_mv, 12)
-            desc_tasa = "1,65% MV (Sufi - Bancolombia)"
-        elif banco_sel == "davivienda":
-            tasa_namv = 0.2050
-            tasa_mv = tasa_namv / 12
-            tasa_ea = tasas.ea_desde_periodica(tasa_mv, 12)
-            desc_tasa = "20,50% NAMV (Davivienda)"
+        if banco_sel in ofertas:
+            tasa_mv = ofertas[banco_sel]["mv"]
+            tasa_ea = ofertas[banco_sel]["ea"]
+            desc_tasa = f"{ofertas[banco_sel]['descripcion']}, {ofertas[banco_sel]['entidad']}"
         else:
             tasa_ea, desc_tasa = entradas.selector_tasa("veh_custom", 0.017)
             tasa_mv = tasas.periodica_desde_ea(tasa_ea, 12)
@@ -276,14 +307,24 @@ if caso_seleccionado_id == "vehiculo_sufi_davivienda":
             ])
 
             with tab_p1:
+                lineas_ofertas = []
+                for o in ofertas.values():
+                    paso_mensual = (
+                        f"  Su tasa periódica mensual es $i_m = {p_tex(o['tasa_valor'])} / 12 = {p_tex(o['mv'], 4)}$ M.V., lo que equivale a:\n"
+                        if o["codigo_tasa"] == "NAMV"
+                        else "  Su costo anual equivalente es:\n"
+                    )
+                    lineas_ofertas.append(
+                        f"- **{o['entidad']}:** Cotiza a **{o['descripcion']}**.\n"
+                        f"{paso_mensual}"
+                        f"  $EA = (1 + {numero(o['mv'], 4)})^{{12}} - 1 =$ **{porcentaje(o['ea'], 2)} E.A.**\n"
+                    )
+                brecha_ea = oferta_cara["ea"] - oferta_barata["ea"]
                 st.markdown(
                     f"**¿Cuál es el costo real del crédito vehicular?**\n"
-                    f"- **Sufi (Bancolombia):** Cotiza a una tasa periódica de **1,65% Mes Vencido (M.V.)**.\n"
-                    f"  Su costo anual equivalente es: $EA = (1 + 0,0165)^{{12}} - 1 =$ **{porcentaje(tasas.ea_desde_periodica(0.0165, 12), 2)} E.A.**\n"
-                    f"- **Banco Davivienda:** Cotiza a una tasa nominal de **20,50% Nominal Anual Mes Vencido (NAMV)**.\n"
-                    f"  Su tasa periódica mensual es $i_m = 20,50\\% / 12 = 1,7083\\%$ M.V., lo que equivale a:\n"
-                    f"  $EA = (1 + 0,017083)^{{12}} - 1 =$ **{porcentaje(tasas.ea_desde_periodica(0.2050/12, 12), 2)} E.A.**\n"
-                    f"- **Conclusión:** Aunque Davivienda parece menor por su número nominal (20,50%), en términos de Tasa Efectiva Anual real **Sufi es más económica por {porcentaje(tasas.ea_desde_periodica(0.2050/12, 12) - tasas.ea_desde_periodica(0.0165, 12), 2)} E.A.**"
+                    f"{''.join(lineas_ofertas)}"
+                    f"- **Conclusión:** Las tasas cotizadas están en bases distintas y no se comparan directamente. En términos de Tasa Efectiva Anual, **{oferta_barata['entidad']} es más económica por {numero(brecha_ea * 100, 2)} puntos porcentuales**.\n"
+                    f"- **Alcance de las tasas:** {notas_tasas}"
                 )
 
             with tab_p2:
@@ -302,23 +343,26 @@ if caso_seleccionado_id == "vehiculo_sufi_davivienda":
                 )
 
             with tab_p3:
-                interes_sens = monto_vehiculo * 0.001 * plazo_meses / 2
+                tasa_mv_sens = tasa_mv + 0.001
+                tabla_sens = amortizacion.tabla_amortizacion(monto_vehiculo, tasa_mv_sens, plazo_meses, sistema="frances")
+                interes_sens = amortizacion.resumen_amortizacion(tabla_sens)["total_intereses"] - res_frances["total_intereses"]
                 st.markdown(
                     f"**¿Cómo cambia el resultado si varían la tasa, el plazo o la cuota?**\n"
                     f"- **Impacto del plazo:**\n"
                     f"  - Si reduces el plazo de 48 a **36 meses**, el interés total en cuota fija cae de **{p_md(res_frances['total_intereses'])}** a un valor menor, pero la cuota mensual sube para cubrir el capital en menos tiempo.\n"
                     f"  - Si extiendes el plazo a **60 meses**, la cuota mensual baja brindando holgura inmediata, pero el sobrecosto por intereses totales pagados sube más de un **25%**.\n"
                     f"- **Impacto de la tasa:**\n"
-                    f"  - Cada variación de apenas 10 puntos básicos (0,10% mensual) altera el total de intereses en aproximadamente **{p_md(interes_sens)} COP**.\n"
+                    f"  - Si la tasa sube apenas 10 puntos básicos, de {porcentaje(tasa_mv, 4)} a {porcentaje(tasa_mv_sens, 4)} mensual, el total de intereses en cuota fija aumenta **{p_md(interes_sens)} COP**.\n"
                     f"- *Puedes simular cualquier combinación en tiempo real usando los controles del panel izquierdo.*"
                 )
 
             with tab_p4:
                 st.markdown(
                     f"**¿Qué alternativa o decisión recomiendan y con qué argumentos?**\n"
-                    f"1. **Entidad Financiera recomendada: Sufi (Bancolombia)**\n"
-                    f"   - **Argumento:** Presenta menor costo financiero efectivo anual (**{porcentaje(tasas.ea_desde_periodica(0.0165, 12), 2)} E.A.** frente a **{porcentaje(tasas.ea_desde_periodica(0.2050/12, 12), 2)} E.A.** de Davivienda).\n"
-                    f"2. **Sistema de Amortización:**\n"
+                    f"1. **Entidad Financiera recomendada: {oferta_barata['entidad']}**\n"
+                    f"   - **Argumento:** Presenta menor costo financiero efectivo anual (**{porcentaje(oferta_barata['ea'], 2)} E.A.** frente a **{porcentaje(oferta_cara['ea'], 2)} E.A.** de {oferta_cara['entidad']}).\n"
+                    f"   - **Precaución:** {notas_tasas} Conviene pedir una cotización vigente a ambas entidades antes de decidir.\n"
+                    f"2. **Sistema de Amortización (con la tasa seleccionada: {desc_tasa}):**\n"
                     f"   - **Opción de Mínimo Costo (Recomendada si hay capacidad de pago):** **Sistema Alemán**, porque produce un ahorro neto de **{p_md(ahorro_intereses)}** en intereses y las cuotas van decreciendo mes a mes desde **{p_md(res_aleman['cuota_inicial'])}** hasta **{p_md(res_aleman['cuota_final'])}**.\n"
                     f"   - **Opción de Estabilidad de Flujo de Caja:** **Sistema Francés**, recomendada si el comprador cuenta con un salario fijo estricto y prefiere certidumbre presupuestal pagando siempre **{p_md(res_frances['cuota_inicial'])}** fijos."
                 )
@@ -358,7 +402,7 @@ if caso_seleccionado_id == "vehiculo_sufi_davivienda":
                 st.dataframe(df_a, hide_index=True, height=300, width="stretch")
 
 # ==============================================================================
-# CASO 2: RENTABILIDAD REAL (BANCOLOMBIA VS. NU / LULO)
+# CASO 2: RENTABILIDAD REAL (BANCOLOMBIA VS. NU)
 # ==============================================================================
 elif caso_seleccionado_id == "inversion_bancolombia_nu":
     p = caso_actual["parametros"]
@@ -385,7 +429,7 @@ elif caso_seleccionado_id == "inversion_bancolombia_nu":
         )
 
         st.divider()
-        st.markdown("**Alternativa B: Cuenta de Rendimientos (Nu / Lulo)**")
+        st.markdown("**Alternativa B: Cuenta de Rendimientos (Nu)**")
         tasa_nu_ea = entradas.campo_tasa("Tasa Cuenta de Ahorro (% EA)", "inv_tasa_nu", p["tasa_cuenta_ea"])
         st.caption("Capitalización diaria con disponibilidad de saldo inmediata.")
 
@@ -406,7 +450,12 @@ elif caso_seleccionado_id == "inversion_bancolombia_nu":
                 p.get("retencion_cuenta", 0.07),
                 ayuda="7,0% general para rendimientos en cuentas de ahorro según Estatuto Tributario Art. 398-1.",
             )
-        ipc_anual = entradas.campo_tasa("Inflación anual esperada (IPC)", "inv_ipc", p["inflacion_ipc"])
+        ipc_anual = entradas.campo_tasa(
+            "Inflación anual (IPC)",
+            "inv_ipc",
+            p["inflacion_ipc"],
+            ayuda="Último dato anual publicado por el DANE; es un dato observado, no una proyección.",
+        )
 
     # Base temporal comercial estándar (360 días) para ambas alternativas (comparación justa)
     t_anos = plazo_dias / 360
@@ -423,7 +472,7 @@ elif caso_seleccionado_id == "inversion_bancolombia_nu":
     tea_neta_cdt = (vf_neto_cdt / capital_inv) ** (1 / t_anos) - 1
     rent_real_cdt = tasas.tasa_real(tea_neta_cdt, ipc_anual)
 
-    # 2. Cálculos Alternativa B (Cuenta Nu / Lulo - Capitalización Diaria bajo convención 360)
+    # 2. Cálculos Alternativa B (Cuenta Nu - Capitalización Diaria bajo convención 360)
     i_diaria_nu = (1 + tasa_nu_ea) ** (1 / 360) - 1
     vf_bruto_nu = capital_inv * ((1 + i_diaria_nu) ** plazo_dias)
     intereses_brutos_nu = vf_bruto_nu - capital_inv
@@ -434,6 +483,13 @@ elif caso_seleccionado_id == "inversion_bancolombia_nu":
     rent_real_nu = tasas.tasa_real(tea_neta_nu, ipc_anual)
 
     diferencia_neta = intereses_netos_nu - intereses_netos_cdt
+    diff_val = abs(diferencia_neta)
+
+    # La alternativa recomendada es la de mayor rendimiento neto
+    if diferencia_neta >= 0:
+        ganador, perdedor = "Cuenta Nu", "CDT Bancolombia"
+    else:
+        ganador, perdedor = "CDT Bancolombia", "Cuenta Nu"
 
     with col_der:
         st.subheader(f"Comparativa de Rentabilidad Neta ({plazo_dias} días)")
@@ -442,21 +498,22 @@ elif caso_seleccionado_id == "inversion_bancolombia_nu":
         with k1:
             estilos.tarjeta_kpi("account_balance", pesos(intereses_netos_cdt), "Ganancia neta CDT", "principal")
         with k2:
-            estilos.tarjeta_kpi("savings", pesos(intereses_netos_nu), "Ganancia neta Nu / Lulo", "amortizacion")
+            estilos.tarjeta_kpi("savings", pesos(intereses_netos_nu), "Ganancia neta Nu", "amortizacion")
         with k3:
             if diferencia_neta >= 0:
                 estilos.tarjeta_kpi("trending_up", pesos(diferencia_neta), "Diferencia a favor Nu", "amortizacion")
             else:
                 estilos.tarjeta_kpi("trending_up", pesos(abs(diferencia_neta)), "Diferencia a favor CDT", "principal")
         with k4:
-            estilos.tarjeta_kpi("percent", porcentaje(rent_real_nu), "Rentabilidad real Nu", TEMA)
+            rent_real_ganador = rent_real_nu if diferencia_neta >= 0 else rent_real_cdt
+            estilos.tarjeta_kpi("percent", porcentaje(rent_real_ganador), f"Rentabilidad real {ganador}", TEMA)
 
         # Gráfico comparativo de resultados al vencimiento
         fig_inv = go.Figure()
         fig_inv.add_trace(
             go.Bar(
                 name="Capital Invertido",
-                x=["CDT Bancolombia", "Cuenta Nu / Lulo"],
+                x=["CDT Bancolombia", "Cuenta Nu"],
                 y=[capital_inv, capital_inv],
                 marker_color="#94A3B8",
             )
@@ -464,7 +521,7 @@ elif caso_seleccionado_id == "inversion_bancolombia_nu":
         fig_inv.add_trace(
             go.Bar(
                 name="Rendimiento Neto (Bolsillo)",
-                x=["CDT Bancolombia", "Cuenta Nu / Lulo"],
+                x=["CDT Bancolombia", "Cuenta Nu"],
                 y=[intereses_netos_cdt, intereses_netos_nu],
                 marker_color=COLOR_FRANCES,
             )
@@ -472,7 +529,7 @@ elif caso_seleccionado_id == "inversion_bancolombia_nu":
         fig_inv.add_trace(
             go.Bar(
                 name="Retención en la Fuente",
-                x=["CDT Bancolombia", "Cuenta Nu / Lulo"],
+                x=["CDT Bancolombia", "Cuenta Nu"],
                 y=[retencion_cdt, retencion_nu],
                 marker_color=estilos.INTERESES,
             )
@@ -513,24 +570,28 @@ elif caso_seleccionado_id == "inversion_bancolombia_nu":
             ])
 
             with tab_p1:
+                brecha_real = abs(rent_real_nu - rent_real_cdt)
+                nota_retencion = (
+                    " Ambas cotizan la misma tasa, así que la diferencia la explica la retención en la fuente."
+                    if tasa_cdt_ea == tasa_nu_ea and modo_cdt == "compuesto"
+                    else ""
+                )
                 st.markdown(
                     f"**¿Cuál es la rentabilidad real del producto (tasa efectiva anual y neta de retención)?**\n"
                     f"- **CDT Bancolombia:**\n"
                     f"  - Tasa pactada: **{porcentaje(tasa_cdt_ea, 2)} E.A.**\n"
                     f"  - Tasa Efectiva Anual Neta (post-retefuente {porcentaje(ret_cdt, 1)} E.T. Art. 395): **{porcentaje(tea_neta_cdt, 2)} E.A.**\n"
                     f"  - Rentabilidad real neta (Ecuación de Fisher descontando inflación IPC del {porcentaje(ipc_anual, 2)}):\n"
-                    f"    $$r = \\frac{{1 + \\text{{TEA neta}}}}{{1 + \\text{{IPC}}}} - 1 = \\frac{{1 + {tea_neta_cdt:.4f}}}{{1 + {ipc_anual:.4f}}} - 1 = \\mathbf{{{porcentaje(rent_real_cdt, 2)}}}$$\n"
-                    f"- **Cuenta de Rendimientos (Nu / Lulo Bank):**\n"
+                    f"    $$r = \\frac{{1 + \\text{{TEA neta}}}}{{1 + \\text{{IPC}}}} - 1 = \\frac{{1 + {numero(tea_neta_cdt, 4)}}}{{1 + {numero(ipc_anual, 4)}}} - 1 = \\mathbf{{{p_tex(rent_real_cdt)}}}$$\n"
+                    f"- **Cuenta de Rendimientos (Nu):**\n"
                     f"  - Tasa pactada: **{porcentaje(tasa_nu_ea, 2)} E.A.**\n"
                     f"  - Tasa Efectiva Anual Neta (post-retefuente {porcentaje(ret_nu, 1)} E.T. Art. 398-1): **{porcentaje(tea_neta_nu, 2)} E.A.**\n"
                     f"  - Rentabilidad real neta (Ecuación de Fisher):\n"
-                    f"    $$r = \\frac{{1 + {tea_neta_nu:.4f}}}{{1 + {ipc_anual:.4f}}} - 1 = \\mathbf{{{porcentaje(rent_real_nu, 2)}}}$$\n"
-                    f"- **Conclusión:** La cuenta Nu/Lulo genera **{porcentaje(rent_real_nu - rent_real_cdt, 2)} más de rentabilidad real neta** sobre la inflación que el CDT."
+                    f"    $$r = \\frac{{1 + {numero(tea_neta_nu, 4)}}}{{1 + {numero(ipc_anual, 4)}}} - 1 = \\mathbf{{{p_tex(rent_real_nu)}}}$$\n"
+                    f"- **Conclusión:** {ganador} genera **{numero(brecha_real * 100, 2)} puntos porcentuales más de rentabilidad real neta** sobre la inflación que {perdedor}.{nota_retencion}"
                 )
 
             with tab_p2:
-                ganador_txt = "en Nu/Lulo" if diferencia_neta >= 0 else "en CDT Bancolombia"
-                diff_val = abs(diferencia_neta)
                 st.markdown(
                     f"**¿Cuánto se recibe en total y qué parte corresponde a intereses netos e impuestos?**\n"
                     f"Para un capital inicial de **{p_md(capital_inv)}** a un plazo de **{plazo_dias} días**:\n"
@@ -539,47 +600,69 @@ elif caso_seleccionado_id == "inversion_bancolombia_nu":
                     f"  - Descuento de retención en la fuente ({porcentaje(ret_cdt, 1)}): **-{p_md(retencion_cdt)}**.\n"
                     f"  - Rendimiento neto de bolsillo: **+{p_md(intereses_netos_cdt)}**.\n"
                     f"  - **Capital total final recibido:** **{p_md(vf_neto_cdt)}**.\n"
-                    f"- **En Cuenta Nu / Lulo Bank:**\n"
+                    f"- **En Cuenta Nu:**\n"
                     f"  - Intereses brutos causados: **{p_md(intereses_brutos_nu)}**.\n"
                     f"  - Descuento de retención en la fuente ({porcentaje(ret_nu, 1)}): **-{p_md(retencion_nu)}**.\n"
                     f"  - Rendimiento neto de bolsillo: **+{p_md(intereses_netos_nu)}**.\n"
                     f"  - **Capital total final acumulado:** **{p_md(vf_neto_nu)}**.\n"
-                    f"- **Ganancia neta adicional {ganador_txt}:** **+{p_md(diff_val)} COP** limpios al bolsillo del inversionista."
+                    f"- **Ganancia neta adicional en {ganador}:** **+{p_md(diff_val)} COP** limpios al bolsillo del inversionista."
                 )
 
             with tab_p3:
+                ipc_alto = ipc_anual + 0.01
                 st.markdown(
                     f"**¿Cómo cambia el resultado si varían la tasa, el plazo o la inflación?**\n"
                     f"- **Impacto del plazo (puedes alternar 90, 180 y 360 días a la izquierda):**\n"
-                    f"  - A 90 o 180 días, la ventaja en dinero de Nu frente a Bancolombia es de menor volumen absoluto pero se suma la ventaja de la liquidez diaria.\n"
-                    f"  - A 360 días completos, la brecha de ganancia neta se consolida en **{p_md(diff_val)} COP**.\n"
+                    f"  - A menor plazo, la diferencia en dinero entre ambas alternativas es de menor volumen absoluto, y la cuenta conserva la ventaja de la liquidez diaria.\n"
+                    f"  - A {plazo_dias} días, la brecha de ganancia neta es de **{p_md(diff_val)} COP** a favor de {ganador}.\n"
                     f"- **Impacto de la inflación (IPC):**\n"
-                    f"  - Si la inflación sube al 7%, la rentabilidad real del CDT cae significativamente, mientras Nu sigue manteniendo una rentabilidad real positiva.\n"
+                    f"  - Si la inflación sube al {porcentaje(ipc_alto, 2)}, la rentabilidad real baja a **{porcentaje(tasas.tasa_real(tea_neta_cdt, ipc_alto), 2)}** en el CDT y a **{porcentaje(tasas.tasa_real(tea_neta_nu, ipc_alto), 2)}** en la cuenta.\n"
                     f"- **Mecanismo de pago en el CDT (Simple vs. Compuesto):**\n"
                     f"  - Si en el CDT retiras los intereses mensualmente (interés simple), no capitalizas y pierdes la ganancia compuesta sobre los intereses ganados."
                 )
 
             with tab_p4:
+                if diferencia_neta >= 0:
+                    decision = "Cuenta de Rendimientos / Cajita de Ahorro (Nu Colombia)"
+                    argumento_rentabilidad = (
+                        f"Ofrece mayor TEA neta post-impuestos (**{porcentaje(tea_neta_nu, 2)}** vs **{porcentaje(tea_neta_cdt, 2)}**) "
+                        f"y mayor rentabilidad real frente a la inflación (**{porcentaje(rent_real_nu, 2)}** vs **{porcentaje(rent_real_cdt, 2)}**)."
+                    )
+                    argumento_liquidez = (
+                        f"**Liquidez y Disponibilidad 24/7:** El CDT tradicional congela el dinero durante {plazo_dias} días (penalización severa por retiro anticipado). "
+                        f"En Nu el dinero está disponible inmediatamente en cualquier momento sin penalidad."
+                    )
+                else:
+                    decision = f"CDT Bancolombia, si el dinero no se va a necesitar durante los {plazo_dias} días"
+                    argumento_rentabilidad = (
+                        f"Ofrece mayor TEA neta post-impuestos (**{porcentaje(tea_neta_cdt, 2)}** vs **{porcentaje(tea_neta_nu, 2)}**) "
+                        f"y mayor rentabilidad real frente a la inflación (**{porcentaje(rent_real_cdt, 2)}** vs **{porcentaje(rent_real_nu, 2)}**), "
+                        f"con **+{p_md(diff_val)} COP** netos. Además, su tasa queda pactada, mientras la de la cuenta puede cambiar."
+                    )
+                    argumento_liquidez = (
+                        f"**Costo en Liquidez:** El CDT congela el dinero durante {plazo_dias} días (penalización severa por retiro anticipado). "
+                        f"Si existe la posibilidad de necesitarlo antes, conviene la cuenta Nu: esos {p_md(diff_val)} COP son el precio de tener el dinero disponible en cualquier momento."
+                    )
                 st.markdown(
                     f"**¿Qué alternativa o decisión recomiendan y con qué argumentos?**\n"
-                    f"**Decisión Recomendada: Cuenta de Rendimientos / Cajita de Ahorro (Nu Colombia / Lulo Bank)**\n"
+                    f"**Decisión Recomendada: {decision}**\n"
                     f"- **Argumentos Financieros y Técnicos:**\n"
-                    f"  1. **Superioridad en Rentabilidad:** Ofrece mayor tasa nominal, mayor TEA neta post-impuestos (**{porcentaje(tea_neta_nu, 2)}** vs **{porcentaje(tea_neta_cdt, 2)}**) y mayor rentabilidad real frente a la inflación (**{porcentaje(rent_real_nu, 2)}** vs **{porcentaje(rent_real_cdt, 2)}**).\n"
-                    f"  2. **Liquidez y Disponibilidad 24/7:** El CDT tradicional congela el dinero durante {plazo_dias} días (penalización severa por retiro anticipado). En Nu/Lulo el dinero está disponible inmediatamente en cualquier momento sin penalidad.\n"
+                    f"  1. **Superioridad en Rentabilidad:** {argumento_rentabilidad}\n"
+                    f"  2. {argumento_liquidez}\n"
                     f"  3. **Seguridad Institucional Idéntica:** Ambas entidades están vigiladas por la Superintendencia Financiera de Colombia y cuentan con el seguro de depósitos **FOGAFIN** (cobertura hasta \\$50.000.000 COP por titular)."
                 )
 
         with st.expander("Ver tabla comparativa técnica completa"):
             tabla_comp = pd.DataFrame(
                 [
-                    {"Concepto": "Tasa cotizada en pantalla", "CDT Bancolombia": porcentaje(tasa_cdt_ea), "Nu / Lulo Bank": porcentaje(tasa_nu_ea)},
-                    {"Concepto": "Mecanismo de cálculo", "CDT Bancolombia": "Compuesto" if modo_cdt == "compuesto" else "Simple", "Nu / Lulo Bank": "Compuesto diario"},
-                    {"Concepto": "Rendimientos brutos generados", "CDT Bancolombia": pesos(intereses_brutos_cdt), "Nu / Lulo Bank": pesos(intereses_brutos_nu)},
-                    {"Concepto": f"Retención en la fuente ({porcentaje(ret_cdt, 1)} / {porcentaje(ret_nu, 1)})", "CDT Bancolombia": pesos(retencion_cdt), "Nu / Lulo Bank": pesos(retencion_nu)},
-                    {"Concepto": "Rendimientos netos recibidos", "CDT Bancolombia": pesos(intereses_netos_cdt), "Nu / Lulo Bank": pesos(intereses_netos_nu)},
-                    {"Concepto": "Tasa Efectiva Anual Neta (TEA neta)", "CDT Bancolombia": porcentaje(tea_neta_cdt), "Nu / Lulo Bank": porcentaje(tea_neta_nu)},
-                    {"Concepto": "Rentabilidad real neta (descontando IPC)", "CDT Bancolombia": porcentaje(rent_real_cdt), "Nu / Lulo Bank": porcentaje(rent_real_nu)},
-                    {"Concepto": "Liquidez del dinero", "CDT Bancolombia": f"Bloqueado {plazo_dias} días", "Nu / Lulo Bank": "Inmediata (24/7)"},
+                    {"Concepto": "Tasa cotizada en pantalla", "CDT Bancolombia": porcentaje(tasa_cdt_ea), "Nu": porcentaje(tasa_nu_ea)},
+                    {"Concepto": "Mecanismo de cálculo", "CDT Bancolombia": "Compuesto" if modo_cdt == "compuesto" else "Simple", "Nu": "Compuesto diario"},
+                    {"Concepto": "Rendimientos brutos generados", "CDT Bancolombia": pesos(intereses_brutos_cdt), "Nu": pesos(intereses_brutos_nu)},
+                    {"Concepto": f"Retención en la fuente ({porcentaje(ret_cdt, 1)} / {porcentaje(ret_nu, 1)})", "CDT Bancolombia": pesos(retencion_cdt), "Nu": pesos(retencion_nu)},
+                    {"Concepto": "Rendimientos netos recibidos", "CDT Bancolombia": pesos(intereses_netos_cdt), "Nu": pesos(intereses_netos_nu)},
+                    {"Concepto": "Tasa Efectiva Anual Neta (TEA neta)", "CDT Bancolombia": porcentaje(tea_neta_cdt), "Nu": porcentaje(tea_neta_nu)},
+                    {"Concepto": "Rentabilidad real neta (descontando IPC)", "CDT Bancolombia": porcentaje(rent_real_cdt), "Nu": porcentaje(rent_real_nu)},
+                    {"Concepto": "Liquidez del dinero", "CDT Bancolombia": f"Bloqueado {plazo_dias} días", "Nu": "Inmediata (24/7)"},
                 ]
             )
             st.dataframe(tabla_comp, hide_index=True, width="stretch")
@@ -595,7 +678,15 @@ elif caso_seleccionado_id == "ahorro_cuota_inicial_gradientes":
         st.subheader("Parámetros del plan de ahorro")
         a1 = entradas.campo_dinero("Primera cuota de ahorro (A1)", "gr_a1", p["a1"], minimo=50_000, paso=50_000)
         n_meses = int(entradas.campo_numero("Plazo del plan (meses)", "gr_plazo", p["plazo_meses"], minimo=6))
-        tasa_mv = entradas.campo_tasa("Rentabilidad del fondo (% MV)", "gr_tasa", p["tasa_mv"], minimo=0.0001, maximo=0.10)
+        tasa_ea_fondo = entradas.campo_tasa(
+            "Rentabilidad del fondo EA",
+            "gr_tasa_ea",
+            p["tasa_ea"],
+            minimo=0.0001,
+            ayuda="Rentabilidad del último año reportada por el fondo, que ya refleja la comisión de administración. No está garantizada.",
+        )
+        tasa_mv = tasas.periodica_desde_ea(tasa_ea_fondo, 12)
+        st.caption(f"**Equivalencia:** {porcentaje(tasa_ea_fondo, 2)} EA $\\Longleftrightarrow$ **{porcentaje(tasa_mv, 4)} mensual**.")
 
         st.divider()
         st.subheader("Modalidad de incremento")
@@ -745,17 +836,22 @@ elif caso_seleccionado_id == "ahorro_cuota_inicial_gradientes":
             ])
 
             with tab_p1:
-                tasa_ea_fondo = tasas.ea_desde_periodica(tasa_mv, 12)
-                ipc_ref = 0.055
+                ipc_ref = next(c for c in casos if c["id"] == "inversion_bancolombia_nu")["parametros"]["inflacion_ipc"]
                 rent_real_fondo = tasas.tasa_real(tasa_ea_fondo, ipc_ref)
+                conclusion_fondo = (
+                    f"Con esta rentabilidad, el fondo queda **{porcentaje(rent_real_fondo, 2)}** por encima de la inflación y protegería el poder de compra del dinero destinado a la vivienda"
+                    if rent_real_fondo >= 0
+                    else f"Con esta rentabilidad, el fondo queda **{porcentaje(abs(rent_real_fondo), 2)}** por debajo de la inflación y el dinero destinado a la vivienda perdería poder de compra"
+                )
                 st.markdown(
                     f"**¿Cuál es la rentabilidad real del plan de ahorro programado?**\n"
-                    f"- **Producto financiero real:** **Plan Semilla / Fiducuenta de Fiduciaria Bancolombia** (Fondo de Inversión Colectiva Abierto, vigilado por la Superintendencia Financiera de Colombia).\n"
-                    f"- **Tasa periódica del fondo:** **{porcentaje(tasa_mv, 2)} Mes Vencido (M.V.)**.\n"
-                    f"- **Tasa Efectiva Anual (E.A.):** $(1 + {tasa_mv:.4f})^{{12}} - 1 =$ **{porcentaje(tasa_ea_fondo, 2)} E.A.** (Rentabilidad oficial certificada en la Ficha Técnica mensual ante la SFC).\n"
-                    f"- **Rentabilidad real neta de inflación (Fisher con IPC proyectado del 5,50%):**\n"
-                    f"  $$r = \\frac{{1 + \\text{{EA}}}}{{1 + \\text{{IPC}}}} - 1 = \\frac{{1 + {tasa_ea_fondo:.4f}}}{{1 + {ipc_ref:.4f}}} - 1 = \\mathbf{{{porcentaje(rent_real_fondo, 2)}}}$$\n"
-                    f"- **Conclusión:** El fondo fiduciario entrega una rentabilidad positiva en términos reales (+{porcentaje(rent_real_fondo, 2)} por encima del costo de vida), protegiendo el poder de compra del dinero destinado a la vivienda."
+                    f"- **Producto financiero:** **Fiducuenta de Fiduciaria Bancolombia** (Fondo de Inversión Colectiva Abierto, vigilado por la Superintendencia Financiera de Colombia).\n"
+                    f"- **Tasa Efectiva Anual (E.A.):** **{porcentaje(tasa_ea_fondo, 2)} E.A.**, rentabilidad del último año reportada por el fondo, que ya refleja la comisión de administración. No está garantizada.\n"
+                    f"- **Tasa mensual equivalente:** $i_m = (1 + {numero(tasa_ea_fondo, 4)})^{{1/12}} - 1 =$ **{porcentaje(tasa_mv, 4)} Mes Vencido (M.V.)**.\n"
+                    f"- **Rentabilidad real neta de inflación (Fisher con IPC del {porcentaje(ipc_ref, 2)}, DANE):**\n"
+                    f"  $$r = \\frac{{1 + \\text{{EA}}}}{{1 + \\text{{IPC}}}} - 1 = \\frac{{1 + {numero(tasa_ea_fondo, 4)}}}{{1 + {numero(ipc_ref, 4)}}} - 1 = \\mathbf{{{p_tex(rent_real_fondo)}}}$$\n"
+                    f"  - *Nota: la rentabilidad del fondo se muestra antes de impuestos; por eso no se compara directamente con la del Caso 2.*\n"
+                    f"- **Conclusión:** {conclusion_fondo}, siempre que el fondo mantenga ese desempeño."
                 )
 
             with tab_p2:
@@ -770,13 +866,16 @@ elif caso_seleccionado_id == "ahorro_cuota_inicial_gradientes":
 
             with tab_p3:
                 g_arit_val = p['gradiente_aritmetico_G']
+                tasa_ea_alta = tasa_ea_fondo + 0.01
+                tasa_mv_alta = tasas.periodica_desde_ea(tasa_ea_alta, 12)
+                vf_tasa_alta = sum(c * (1 + tasa_mv_alta) ** (n_meses - m) for m, c in zip(meses_arr, cuotas))
                 st.markdown(
                     f"**¿Cómo cambia el resultado si varían la tasa, el plazo o la modalidad de gradiente?**\n"
                     f"- **Aritmético (+ {p_md(g_arit_val)}/mes) vs. Geométrico (+ {porcentaje(p['gradiente_geometrico_g'])}):**\n"
                     f"  - El gradiente aritmético sube a ritmo constante lineal, ideal para quien tiene expectativas de incrementos salariales fijos en pesos.\n"
                     f"  - El gradiente geométrico crece a tasa porcentual compuesta; si se fija en 2% mensual, en los primeros meses exige cuotas más bajas pero al final crece de forma pronunciada.\n"
                     f"- **Impacto de la tasa de interés:**\n"
-                    f"  - Si la rentabilidad del fondo sube del 0,60% al 0,80% MV, el capital final VF se incrementa en más de \\$1.800.000 COP sin tener que aportar un solo peso adicional de bolsillo.\n"
+                    f"  - Si la rentabilidad del fondo sube de {porcentaje(tasa_ea_fondo, 2)} a {porcentaje(tasa_ea_alta, 2)} E.A., el capital final VF se incrementa en **{p_md(vf_tasa_alta - vf_acumulado)} COP** sin tener que aportar un solo peso adicional de bolsillo. Como la rentabilidad no está garantizada, también puede bajar y reducir el capital final.\n"
                     f"- *Prueba a cambiar a la izquierda el tipo de gradiente o el plazo para recalcular toda la trayectoria.*"
                 )
 

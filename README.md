@@ -38,8 +38,8 @@ Permite simular, comparar y resolver problemas financieros de la banca y econom�
 
 ### 3. Casos Prácticos Aplicados
 * **🚗 Caso 1: Crédito de Vehículo (Sufi vs. Davivienda):** Comparación justa de cotizaciones en MV y NAMV ($35.000.000 COP a 48 meses), evaluación de liquidez (Francés) vs. minimización de costo (Alemán).
-* **🏦 Caso 2: Inversión y Rentabilidad Real (CDT Bancolombia vs. Nu / Lulo Bank):** Interés simple vs. compuesto, retención en la fuente, inflación y dilema de liquidez.
-* **📈 Caso 3: Ahorro Programado para Cuota Inicial con Gradientes:** Plan a 36 meses al 0,60% MV con gradiente aritmético vs. geométrico y cuota uniforme equivalente.
+* **🏦 Caso 2: Inversión y Rentabilidad Real (CDT Bancolombia vs. Nu):** Interés simple vs. compuesto, retención en la fuente, inflación y dilema de liquidez.
+* **📈 Caso 3: Ahorro Programado para Cuota Inicial con Gradientes (Fiducuenta):** Plan a 36 meses con rentabilidad de 9,07% E.A. (último año, rentabilidad reportada por el fondo, que ya refleja la comisión de administración; no garantizada), gradiente aritmético vs. geométrico y cuota uniforme equivalente.
 
 ### 4. Memoria Técnica
 * **[Supuestos y Fórmulas](paginas/supuestos_formulas.py):** Marco normativo colombiano (SFC, Ley 546/1999, Estatuto Tributario), criterios de precisión y formulario matemático completo en LaTeX.
